@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mule-project xmlns="http://www.mulesoft.com/tooling/project" runtimeId="org.mule.tooling.server.3.9.0.ee" schemaVersion="5.3.0.0">
+    <name>skryv2crm</name>
+    <description></description>
+    <muleExtension name="AMQP-0-9" qualifier="mule-transport-amqp-contribution"/>
+    <muleExtension name="LDAP" qualifier="org.mule.tooling.ui.contribution.ldap.3.5.0"/>
+</mule-project>

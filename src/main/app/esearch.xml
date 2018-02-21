@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:amqps="http://www.mulesoft.org/schema/mule/amqps" xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp"
+	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/amqps http://www.mulesoft.org/schema/mule/amqps/current/mule-amqps.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    <sub-flow name="esearch_publish_log_message">
+        <set-payload value="#['']" doc:name="Set Payload - make empty"/>
+        <set-variable variableName="index" value="skryv2crm" doc:name="Variable - index"/>
+        <set-variable variableName="timestamp" value="#[(server.dateTime).toString()]" doc:name="Variable - timestamp"/>
+        <dw:transform-message doc:name="flowVars to json" metadata:id="c4eeb939-e4db-4773-a666-d3f2a6bf934e">
+            <dw:input-payload/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+flowVars - "rootMessage" - "jobData" - "jobConfig" - "amqp.channel" mapObject {
+  '$$': $
+  }
+
+]]></dw:set-payload>
+        </dw:transform-message>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <logger message="Sending Log Message to Queue #[payload]" level="INFO" doc:name="Sending Log message to Queue"/>
+        <amqp:outbound-endpoint queueName="${rabbit.queue.esearch_log}" queueDurable="true" responseTimeout="10000" connector-ref="OutboundAMQPConnector" doc:name="AMQP - Publish Log Entry"/>
+    </sub-flow>
+</mule>

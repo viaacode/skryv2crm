@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ldap="http://www.mulesoft.org/schema/mule/ldap"
+	xmlns:cluster="http://www.mulesoft.org/schema/mule/ee/cluster"
+	xmlns:slack="http://www.mulesoft.org/schema/mule/slack" xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ldap http://www.mulesoft.org/schema/mule/ldap/current/mule-ldap.xsd
+http://www.mulesoft.org/schema/mule/slack http://www.mulesoft.org/schema/mule/slack/current/mule-slack.xsd
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<context:property-placeholder location="${mule.env}.properties" />
+	<amqp:connector name="InboundAMQPConnector"
+		validateConnections="true" host="${rabbit.host}" port="${rabbit.port}"
+		virtualHost="${rabbit.vhost}" username="${rabbit.username}" password="${rabbit.password}"
+		ackMode="MANUAL" prefetchCount="1" numberOfChannels="1"
+		doc:name="AMQP-0-9 Connector">
+		<reconnect frequency="30000" count="50" />
+	</amqp:connector>
+	<amqp:connector name="OutboundAMQPConnector"
+		validateConnections="true" host="${rabbit.host}" port="${rabbit.port}"
+		virtualHost="${rabbit.vhost}" username="${rabbit.username}" password="${rabbit.password}"
+		doc:name="AMQP-0-9 Connector">
+		<reconnect frequency="30000" count="50" />
+	</amqp:connector>
+	<http:request-config name="RabbitMQAPI" host="${rabbit.host}"
+		port="${rabbit.apiport}" basePath="${rabbit.basepath}" doc:name="HTTP Request Configuration">
+		<http:basic-authentication username="${rabbit.username}"
+			password="${rabbit.password}" preemptive="true" />
+	</http:request-config>
+	<configuration defaultExceptionStrategy-ref="globalChoice_Exception_Strategy"
+		doc:name="Configuration">
+		<http:config useTransportForUris="false" />
+	</configuration>
+	<http:request-config name="Elastic_Search" host="${elastic.host}"
+		port="${elastic.port}" basePath="${elastic.path}" doc:name="HTTP Request Configuration" />
+	<http:proxy name="Proxy_Configuration" host="proxy.do.viaa.be"
+		port="80" doc:name="Proxy Configuration" />
+	<http:request-config name="HTTP_Request_Configuration_Teamleader"
+		doc:name="HTTP Request Configuration" basePath="/api" host="${teamleader.host}"
+		port="443" protocol="HTTPS" proxy-ref="Proxy_Configuration" />
+	<http:request-config name="HTTP_Request_Configuration_Slack"
+		protocol="HTTPS" host="slack.com" port="443" basePath="/api"
+		doc:name="HTTP Request Configuration" proxy-ref="Proxy_Configuration">
+	</http:request-config>
+	<http:request-config name="HTTP_Request_Configuration_Skryv_OAUTH"
+		host="${skryv.oauth_host}" port="443" responseTimeout="5000"
+		doc:name="HTTP Request Configuration" protocol="HTTPS"
+		connectionIdleTimeout="5000">
+	</http:request-config>
+	<http:request-config name="HTTP_Request_Configuration_Skryv_API"
+		protocol="HTTPS" host="${skryv.api_host}" port="443"
+		doc:name="HTTP Request Configuration" responseTimeout="5000"
+		connectionIdleTimeout="5000" basePath="/">
+		<http:proxy host="${proxy.host}" port="80" />
+	</http:request-config>
+	<db:generic-config name="Generic_Database_Configuration_Postgres"
+		url="jdbc:postgresql://${db.host}:${db.port}/${db.database}?password=${db.password}&amp;user=${db.username}"
+		driverClassName="org.postgresql.Driver" doc:name="Generic Database Configuration" />
+	<ldap:config name="LDAP_Configuration" authDn="${ldap.principal_dn}"
+		authPassword="${ldap.password}" authentication="simple" url="${ldap.url}"
+		doc:name="LDAP: TLS Configuration" schemaEnabled="true" referral="FOLLOW">
+		<ldap:extended-configuration>
+			<ldap:extended-configuration key="java.naming.ldap.factory.socket">org.mule.module.ldap.security.BypassTrustSSLSocketFactory</ldap:extended-configuration>
+		</ldap:extended-configuration>
+	</ldap:config>
+</mule>

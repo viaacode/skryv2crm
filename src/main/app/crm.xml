@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:amqps="http://www.mulesoft.org/schema/mule/amqps" xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/amqps http://www.mulesoft.org/schema/mule/amqps/current/mule-amqps.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+    <sub-flow name="crm_company_update_samenwerkings_overeenkomst">
+        <set-variable variableName="event_type" value="samenwekrings_overeenkomst" doc:name="Set event_type"/>
+        <dw:transform-message doc:name="set api fields">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  company_id : flowVars.company_id,
+  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.ja'),
+  ("custom_field_" ++ p('teamleader.company.actief')) : p('teamleader.company.actief.nee'),
+  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "1",
+  ("custom_field_" ++ p('teamleader.company.samenwerkingsovereenkomst')) : "1"
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <until-successful maxRetries="5" doc:name="Until Successful">
+            <http:request config-ref="HTTP_Request_Configuration_Teamleader" path="/updateCompany.php" method="POST" doc:name="HTTP - UpdateCompany"/>
+        </until-successful>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <set-variable variableName="state" value="CRM_COMANY_UPDATED" doc:name="Variable - state - CRM_COMANY_UPDATED"/>
+        <flow-ref name="esearch_publish_log_message" doc:name="eSearch"/>
+    </sub-flow>
+</mule>
