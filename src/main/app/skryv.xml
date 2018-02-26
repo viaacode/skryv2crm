@@ -14,7 +14,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
     <http:request-config name="HTTP_Request_Configuration" protocol="HTTPS" host="viaa-test.skryv.com" port="443" doc:name="HTTP Request Configuration"/>
     <quartz:connector name="Quartz" validateConnections="true" doc:name="Quartz"/>
-    <http:listener-config name="HTTP_Listener_Configuration_Skryv" host="0.0.0.0" port="10004" doc:name="HTTP Listener Configuration"/>
+    <http:listener-config name="HTTP_Listener_Configuration_Skryv" host="0.0.0.0" port="10009" doc:name="HTTP Listener Configuration"/>
     <sub-flow name="skryv_receive_set_vars">
         <logger message="PAYLOAD: #[message.payloadAs(java.lang.String) + &quot;\n\nHeaders: &quot; + message.inboundProperties + &quot;\n-------------------------------------------------------------------------------------------------------\n&quot;]" level="INFO" doc:name="Log"/>
         <dw:transform-message doc:name="Convert to LinkedHashMap">
@@ -26,6 +26,7 @@ payload]]></dw:set-payload>
         <set-variable variableName="action" value="#[payload.action]" doc:name="Set action"/>
         <set-variable variableName="dossier" value="#[payload.dossier]" doc:name="Set dossier"/>
         <set-variable variableName="process" value="#[payload.process]" doc:name="Set process"/>
+        <set-variable variableName="or_number" value="#[payload.dossier.externalId]" doc:name="Set or_number"/>
         <set-variable variableName="x-skryv-event" value="#[message.inboundProperties.'x-skryv-event']" doc:name="Set x-skryv-event"/>
         <set-variable variableName="x-skryv-hook-id" value="#[message.inboundProperties.'x-skryv-hook-id']" doc:name="Set x-skryv-hook-id"/>
         <set-variable variableName="x-skryv-hook-id" value="#[message.inboundProperties.'x-skryv-delivery']" doc:name="Set x-skryv-delivery"/>
@@ -37,7 +38,6 @@ payload]]></dw:set-payload>
     <flow name="skryv_receive_webhook">
         <http:listener config-ref="HTTP_Listener_Configuration_Skryv" path="/skryv/event" allowedMethods="POST" doc:name="HTTP /skryv/event"/>
         <flow-ref name="skryv_receive_set_vars" doc:name="Set Variables"/>
-        <set-variable variableName="or_number" value="OR-dj58g2z" doc:name="TMMMP - Set OR_Number"/>
         <flow-ref name="ldap_company_get_id_by_or_number" doc:name="Get Company ID from LDAP based on the OR Number"/>
         <choice doc:name="Check Event">
             <when expression="#[flowVars.'x-skryv-event' == 'process' &amp;&amp; flowVars.action == 'ended' &amp;&amp; flowVars.process.processDefinitionKey == 'so_ondertekenproces']">
@@ -92,7 +92,7 @@ payload]]></dw:set-payload>
         <logger message="Process start - #[payload]" level="INFO" doc:name="Logger"/>
     </flow>
     <sub-flow name="skryv_get_access_token">
-        <until-successful maxRetries="5" doc:name="Until Successful">
+        <until-successful maxRetries="5" doc:name="Until Successful" synchronous="true">
             <db:select config-ref="Generic_Database_Configuration_Postgres" doc:name="Retrieve access_token">
                 <db:parameterized-query><![CDATA[select *
 from ${db.skryv_token}
