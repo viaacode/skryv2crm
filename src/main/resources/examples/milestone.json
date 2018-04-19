@@ -1,0 +1,24 @@
+{  
+   "action":"reached",
+   "dossier":{  
+      "id":"5724b881-b0a4-4760-8587-0092c2946a9f",
+      "label":"TEST 3 17042018",
+      "externalId":"1245",
+      "description":"",
+      "dossierDefinition":"90d24d34-b5b3-4942-8504-b6d76dd86ccb",
+      "createdAt":"2018-04-17T08:10:01.000+0000",
+      "updatedAt":"2018-04-17T08:10:01.000+0000",
+      "creator":"33aeb47c-d027-1036-8f5f-d369bf7ac4f1",
+      "active":true,
+      "communications":[  
+
+      ]
+   },
+   "milestone":{  
+      "id":"dfd0523b-d9ba-4d8a-bf32-3e8decd0f539",
+      "dossierId":"5724b881-b0a4-4760-8587-0092c2946a9f",
+      "key":"IntermediateThrowEvent_DS_ITV_misschienlatersamenwerkingVIAA",
+      "status":"Misschien later samenwerking",
+      "timestamp":"2018-04-17T08:11:25.580Z"
+   }
+}

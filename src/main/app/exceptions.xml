@@ -1,28 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:slack="http://www.mulesoft.org/schema/mule/slack" xmlns:cluster="http://www.mulesoft.org/schema/mule/ee/cluster" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:spring="http://www.springframework.org/schema/beans" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:cluster="http://www.mulesoft.org/schema/mule/ee/cluster"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/slack http://www.mulesoft.org/schema/mule/slack/current/mule-slack.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
-    <choice-exception-strategy name="globalChoice_Exception_Strategy">
-        <catch-exception-strategy doc:name="Catch Exception Strategy">
-            <set-variable variableName="error_message" value="Failed to process message" doc:name="Set error_message"/>
-            <set-variable variableName="error_cause" value="#[exception.toString() + &quot;\n\n&quot; + exception.getCause().toString() + &quot;\n\n&quot; + message.payloadAs(java.lang.String)]" doc:name="Variable - error_cause"/>
-            <logger message="ERROR MESSAGE : #[flowVars.error_message] - ERROR CAUSE : #[flowVars.error_cause]" level="INFO" doc:name="Log error_message and error_cause to file"/>
-            <async doc:name="Async">
-                <set-variable variableName="state" value="EXCEPTION" doc:name="Variable - state"/>
-                <flow-ref name="esearch_publish_log_message" doc:name="esearch_publish_log_message"/>
-            </async>
-            <set-variable variableName="kibana_link" value="http://${elastic.host}:${elastic.port.kibana}/app/kibana#/discover?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-20h,mode:quick,to:now))&amp;_a=(columns:!(state,event_id),index:#[flowVars.index],interval:auto,query:(query_string:(analyze_wildcard:!t,query:event_id%3D#[flowVars.event_id])),sort:!(timestamp,desc))" doc:name="Variable - kibana_link"/>
-            <set-variable variableName="slack_message" value="#['*EXCEPTION :* ' + flowVars.error_message + &quot;\n\n&quot; + '*CAUSE :* ' + flowVars.error_cause + &quot;\n\n&quot; + '*DETAILS :* ' + flowVars.kibana_link]" doc:name="Variable - slack_message"/>
-            <logger message="SLACK MESSAGE : #[flowVars.slack_message]" level="INFO" doc:name="slack_message"/>
-            <dw:transform-message doc:name="Transform Message">
-                <dw:set-payload><![CDATA[%dw 1.0
+	<configuration defaultExceptionStrategy-ref="globalChoice_Exception_Strategy"
+		doc:name="Configuration">
+		<http:config useTransportForUris="false" />
+	</configuration>
+<!-- 	<slack:token-config name="Slack__Token_Configuration" -->
+<!-- 		accessToken="${slack.token}" doc:name="Slack: Token Configuration"> -->
+<!-- 		<reconnect /> -->
+<!-- 	</slack:token-config> -->
+	<choice-exception-strategy name="globalChoice_Exception_Strategy">
+		<catch-exception-strategy doc:name="Catch Exception Strategy">
+			<set-variable variableName="error_message" value="Failed to process message"
+				doc:name="Set error_message" />
+			<set-variable variableName="error_cause"
+				value="#[exception.toString() + &quot;\n\n&quot; + exception.getCause().toString()]"
+				doc:name="Variable - error_cause" />
+			<choice doc:name="Check if payload is LDAP Entry">
+				<when expression="#[payload is org.mule.module.ldap.api.LDAPEntry]">
+					<set-variable variableName="error_cause"
+						value="#[flowVars.error_cause + &quot;\n\n&quot; + payload.getDn()]"
+						doc:name="TRUE - Variable - error_cause (extend with dn)" />
+				</when>
+				<otherwise>
+					<set-variable variableName="error_cause"
+						value="#[flowVars.error_cause + &quot;\n\n&quot; + message.payloadAs(java.lang.String)]"
+						doc:name="FALSE - Variable - error_cause (extend with payload as string)" />
+				</otherwise>
+			</choice>
+			<logger
+				message="ERROR MESSAGE : #[flowVars.error_message] - ERROR CAUSE : #[flowVars.error_cause]"
+				level="INFO" doc:name="Log error_message and error_cause to file" />
+			<async doc:name="Async">
+				<set-variable variableName="state" value="#['EXCEPTION']"
+					doc:name="Variable - state" />
+				<flow-ref name="esearch_publish_log_message" doc:name="log_elastic_search" />
+			</async>
+			<set-variable variableName="kibana_link"
+				value="http://${elastic.host}:${elastic.port.kibana}/app/kibana#/discover?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-20h,mode:quick,to:now))&amp;_a=(columns:!(state,event_id),index:#[flowVars.index],interval:auto,query:(query_string:(analyze_wildcard:!t,query:event_id%3D#[flowVars.event_id])),sort:!(timestamp,desc))"
+				doc:name="Variable - kibana_link" />
+			<set-variable variableName="slack_message"
+				value="#['*EXCEPTION :* ' + flowVars.error_message + &quot;\n\n&quot; + '*CAUSE :* ' + flowVars.error_cause + &quot;\n\n&quot; + '*DETAILS :* ' + flowVars.kibana_link]"
+				doc:name="Variable - slack_message" />
+			<logger message="SLACK MESSAGE : #[flowVars.slack_message]"
+				level="INFO" doc:name="slack_message" />
+			<set-payload value="#['']" doc:name="Set Payload - make empty" />
+			<dw:transform-message doc:name="Transform Message">
+				<dw:set-payload><![CDATA[%dw 1.0
 %output application/json
 ---
 {
@@ -30,20 +64,29 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
     "text": flowVars.slack_message,
     "username": "SKRYV2CRM - EXCEPTION"
 }]]></dw:set-payload>
-            </dw:transform-message>
-            <byte-array-to-string-transformer mimeType="application/json" doc:name="Byte Array to String"/>
-            <async doc:name="Async">
-                <until-successful maxRetries="5" synchronous="true" doc:name="Until Successful">
-                    <http:request config-ref="HTTP_Request_Configuration_Slack" path="/chat.postMessage" method="POST" doc:name="HTTP - /chat.postMessage">
-                        <http:request-builder>
-                            <http:header headerName="Content-Type" value="application/json"/>
-                            <http:header headerName="Authorization" value="#[&quot;Bearer &quot; + '${slack.token}']"/>
-                        </http:request-builder>
-                    </http:request>
-                </until-successful>
-            </async>
-            <set-property propertyName="http.status" value="200" doc:name="Property - 200 - We give always back so that CRM does not retry"/>
-            <set-payload value="#[flowVars.error_message + &quot;\n&quot; + flowVars.error_cause]" doc:name="Set Payload - error_message"/>
-                 </catch-exception-strategy>
-    </choice-exception-strategy>
+			</dw:transform-message>
+			<byte-array-to-string-transformer
+				mimeType="application/json" doc:name="Byte Array to String" />
+			<async doc:name="Async">
+				<until-successful maxRetries="5" synchronous="true"
+					doc:name="Until Successful">
+					<http:request config-ref="HTTP_Request_Configuration_Slack"
+						path="/chat.postMessage" method="POST" doc:name="HTTP - /chat.postMessage">
+						<http:request-builder>
+							<http:header headerName="Content-Type" value="application/json" />
+							<http:header headerName="Authorization"
+								value="#[&quot;Bearer &quot; + '${slack.token}']" />
+						</http:request-builder>
+					</http:request>
+				</until-successful>
+			</async>
+			<set-property propertyName="http.status" value="200"
+				doc:name="Property - 200 - We give always back so that Skryv does not retry" />
+			<set-payload
+				value="#[flowVars.error_message + &quot;\n&quot; + flowVars.error_cause]"
+				doc:name="Set Payload - error_message" />
+			<logger message="ERROR HANDLER  - #[message]" level="WARN"
+				doc:name="Logger" />
+		</catch-exception-strategy>
+	</choice-exception-strategy>
 </mule>

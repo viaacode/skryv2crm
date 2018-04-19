@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
-	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:quartz="http://www.mulesoft.org/schema/mule/quartz" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:spring="http://www.springframework.org/schema/beans" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<mule xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata"
+	xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:json="http://www.mulesoft.org/schema/mule/json"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:quartz="http://www.mulesoft.org/schema/mule/quartz"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
@@ -11,94 +14,142 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/quartz/current/mule-quartz.xsd
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
-    <http:request-config name="HTTP_Request_Configuration" protocol="HTTPS" host="viaa-test.skryv.com" port="443" doc:name="HTTP Request Configuration"/>
-    <quartz:connector name="Quartz" validateConnections="true" doc:name="Quartz"/>
-    <http:listener-config name="HTTP_Listener_Configuration_Skryv" host="0.0.0.0" port="10009" doc:name="HTTP Listener Configuration"/>
-    <sub-flow name="skryv_receive_set_vars">
-        <logger message="PAYLOAD: #[message.payloadAs(java.lang.String) + &quot;\n\nHeaders: &quot; + message.inboundProperties + &quot;\n-------------------------------------------------------------------------------------------------------\n&quot;]" level="INFO" doc:name="Log"/>
-        <dw:transform-message doc:name="Convert to LinkedHashMap">
-            <dw:set-payload><![CDATA[%dw 1.0
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+	<quartz:connector name="Quartz" validateConnections="true"
+		doc:name="Quartz" />
+	<http:listener-config name="HTTP_Listener_Configuration_Skryv"
+		host="0.0.0.0" port="10009" doc:name="HTTP Listener Configuration" />
+	<flow name="skryv_receive_webhook">
+		<http:listener config-ref="HTTP_Listener_Configuration_Skryv"
+			path="/skryv/event" allowedMethods="POST" doc:name="HTTP /skryv/event" />
+		<flow-ref name="skryv_receive_set_vars" doc:name="skryv_receive_set_vars" />
+		<flow-ref name="ldap_company_get_id_by_or_number" doc:name="ldap_company_get_id_by_or_number" />
+		<flow-ref name="crm_company_set_api_fields" doc:name="crm_company_set_api_fields" />
+		<choice doc:name="Skip Event?">
+			<when expression="#[flowVars.skip_event == true]">
+				<expression-component doc:name="true - Do Nothing"><![CDATA[""]]></expression-component>
+			</when>
+			<otherwise>
+				<flow-ref name="crm_company_update" doc:name="crm_company_update" />
+			</otherwise>
+		</choice>
+	</flow>
+	<sub-flow name="skryv_receive_set_vars">
+		<logger
+			message="PAYLOAD: #[message.payloadAs(java.lang.String) + &quot;\n\nHeaders: &quot; + message.inboundProperties + &quot;\n-------------------------------------------------------------------------------------------------------\n&quot;]"
+			level="INFO" doc:name="Log" />
+		<dw:transform-message doc:name="Convert to LinkedHashMap">
+			<dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 ---
 payload]]></dw:set-payload>
-        </dw:transform-message>
-        <set-variable variableName="action" value="#[payload.action]" doc:name="Set action"/>
-        <set-variable variableName="dossier" value="#[payload.dossier]" doc:name="Set dossier"/>
-        <set-variable variableName="process" value="#[payload.process]" doc:name="Set process"/>
-        <set-variable variableName="or_number" value="#[payload.dossier.externalId]" doc:name="Set or_number"/>
-        <set-variable variableName="x-skryv-event" value="#[message.inboundProperties.'x-skryv-event']" doc:name="Set x-skryv-event"/>
-        <set-variable variableName="x-skryv-hook-id" value="#[message.inboundProperties.'x-skryv-hook-id']" doc:name="Set x-skryv-hook-id"/>
-        <set-variable variableName="x-skryv-hook-id" value="#[message.inboundProperties.'x-skryv-delivery']" doc:name="Set x-skryv-delivery"/>
-        <flow-ref name="utils_set_esearch_variables" doc:name="Set Variables for esearch"/>
-        <set-variable variableName="index" value="skryv2crm" doc:name="Variable - index"/>
-        <set-variable variableName="state" value="SKRYV_WEBHOOK_DATA" doc:name="Variable - state - SKRYV_WEBHOOK_DATA"/>
-        <flow-ref name="esearch_publish_log_message" doc:name="eSearch"/>
-    </sub-flow>
-    <flow name="skryv_receive_webhook">
-        <http:listener config-ref="HTTP_Listener_Configuration_Skryv" path="/skryv/event" allowedMethods="POST" doc:name="HTTP /skryv/event"/>
-        <flow-ref name="skryv_receive_set_vars" doc:name="Set Variables"/>
-        <flow-ref name="ldap_company_get_id_by_or_number" doc:name="Get Company ID from LDAP based on the OR Number"/>
-        <choice doc:name="Check Event">
-            <when expression="#[flowVars.'x-skryv-event' == 'process' &amp;&amp; flowVars.action == 'ended' &amp;&amp; flowVars.process.processDefinitionKey == 'so_ondertekenproces']">
-                <flow-ref name="crm_company_update_samenwerkings_overeenkomst" doc:name="CRM Update Company - Samenwerkingsovereenkomst"/>
-            </when>
-            <otherwise>
-                <logger message="x-skryv-delivery ('#[flowVars.x-skryv-delivery]') did not match the criteria and will not be sent to CRM" level="INFO" doc:name="x-skryv-delivery did not match the criteria and will not be sent to CRM"/>
-            </otherwise>
-        </choice>
-    </flow>
-    <flow name="skryvFlow" initialState="stopped">
-        <quartz:inbound-endpoint jobName="teststsst" repeatInterval="0" repeatCount="0" startDelay="0" connector-ref="Quartz" responseTimeout="10000" doc:name="Quartz">
-            <quartz:event-generator-job/>
-        </quartz:inbound-endpoint>
-        <flow-ref name="skryv_get_access_token" doc:name="oauth_tokens"/>
-        <set-payload value="{&quot;label&quot;:&quot;skryv_api_tst_2&quot;,&quot;dossierDefinition&quot;:&quot;dcb4f852-f3ab-40f6-a175-d49b21d3ddb6&quot;,&quot;description&quot;:&quot;dit is een test&quot;}" encoding="UTF-8" mimeType="application/json" doc:name="Set Payload - Dossier"/>
-        <http:request config-ref="HTTP_Request_Configuration" path="/api/dossiers" method="POST" doc:name="HTTP - /api/dossiers">
-            <http:request-builder>
-                <http:header headerName="Authorization" value="Bearer #[flowVars.access_token]"/>
-                <http:header headerName="Accept" value="application/json"/>
-            </http:request-builder>
-        </http:request>
-        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
-        <logger level="INFO" doc:name="Logger" message="Dossier - #[payload]"/>
-        <dw:transform-message doc:name="Transform Message">
-            <dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-payload]]></dw:set-payload>
-        </dw:transform-message>
-        <set-variable variableName="dossier" value="#[payload]" doc:name="Variable - dossier"/>
-        <set-payload value="{&quot;authorizationId&quot;:&quot;&quot;,&quot;resourceId&quot;:&quot;#[flowVars.dossier.id]&quot;,&quot;resourceType&quot;:&quot;DOSSIER&quot;,&quot;roleId&quot;:&quot;16dbcdb4-2b42-4bce-b7bb-cd0026a5548b&quot;,&quot;userId&quot;:&quot;anna&quot;}" encoding="UTF-8" doc:name="Set Payload"/>
-        <logger message="Dossier - #[payload]" level="INFO" doc:name="Logger"/>
-        <http:request config-ref="HTTP_Request_Configuration" path="/api/authorizations" method="POST" doc:name="HTTP - /api/authorizations">
-            <http:request-builder>
-                <http:header headerName="Authorization" value="Bearer #[flowVars.access_token]"/>
-                <http:header headerName="Accept" value="application/json"/>
-                <http:header headerName="Content-Type" value="application/json"/>
-            </http:request-builder>
-        </http:request>
-        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
-        <logger message="Authorization - #[payload]" level="INFO" doc:name="Logger"/>
-        <set-payload value="{&quot;dossierId&quot;:&quot;#[flowVars.dossier.id]&quot;,&quot;processDefinitionKey&quot;:&quot;Intentieverklaring_v2_workshop&quot;}" encoding="UTF-8" doc:name="Set Payload"/>
-        <http:request config-ref="HTTP_Request_Configuration" path="/api/processes/start" method="POST" doc:name="HTTP - /api/processes/start">
-            <http:request-builder>
-                <http:header headerName="Authorization" value="Bearer #[flowVars.access_token]"/>
-                <http:header headerName="Accept" value="application/json"/>
-                <http:header headerName="Content-Type" value="application/json"/>
-            </http:request-builder>
-        </http:request>
-        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
-        <logger message="Process start - #[payload]" level="INFO" doc:name="Logger"/>
-    </flow>
-    <sub-flow name="skryv_get_access_token">
-        <until-successful maxRetries="5" doc:name="Until Successful" synchronous="true">
-            <db:select config-ref="Generic_Database_Configuration_Postgres" doc:name="Retrieve access_token">
-                <db:parameterized-query><![CDATA[select *
+		</dw:transform-message>
+		<set-variable variableName="action" value="#[payload.action]"
+			doc:name="Set action" />
+		<set-variable variableName="dossier" value="#[payload.dossier]"
+			doc:name="Set dossier" />
+		<set-variable variableName="process" value="#[payload.?process]"
+			doc:name="Set process" />
+		<set-variable variableName="or_number"
+			value="#[payload.dossier.externalId]" doc:name="Set or_number" />
+		<set-variable variableName="x-skryv-event"
+			value="#[message.inboundProperties.'x-skryv-event']" doc:name="Set x-skryv-event" />
+		<set-variable variableName="x-skryv-hook-id"
+			value="#[message.inboundProperties.'x-skryv-hook-id']" doc:name="Set x-skryv-hook-id" />
+		<set-variable variableName="x-skryv-hook-id"
+			value="#[message.inboundProperties.'x-skryv-delivery']" doc:name="Set x-skryv-delivery" />
+		<set-variable variableName="milestone_key" value="#[payload.?milestone.key]"
+			doc:name="Set milestone_key" />
+		<set-variable variableName="milestone_status" value="#[payload.?milestone.status]"
+			doc:name="Set milestone_status" />
+		<set-variable variableName="process_key"
+			value="#[payload.?process.processDefinitionKey]" doc:name="Set process_key" />
+		<flow-ref name="utils_set_esearch_variables" doc:name="utils_set_esearch_variables" />
+		<set-variable variableName="index" value="skryv2crm"
+			doc:name="Variable - index" />
+		<set-variable variableName="state" value="SKRYV_WEBHOOK_DATA"
+			doc:name="Variable - state - SKRYV_WEBHOOK_DATA" />
+		<flow-ref name="esearch_publish_log_message" doc:name="esearch_publish_log_message" />
+	</sub-flow>
+	<flow name="skryv_dossier_get" initialState="stopped">
+		<quartz:inbound-endpoint jobName="teststsstf"
+			repeatInterval="0" repeatCount="0" startDelay="0" connector-ref="Quartz"
+			responseTimeout="10000" doc:name="Quartz">
+			<quartz:event-generator-job />
+		</quartz:inbound-endpoint>
+		<flow-ref name="skryv_get_access_token" doc:name="skryv_get_access_token" />
+		<http:request config-ref="HTTP_Request_Configuration_Skryv_OAUTH"
+			path="/api/dossiers/{id}" method="GET" doc:name="HTTP - /api/dossiers/id">
+			<http:request-builder>
+				<http:uri-param paramName="id"
+					value="f281edf1-b706-4f14-8c57-5d139d0e0d21" />
+				<http:header headerName="Authorization"
+					value="Bearer #[flowVars.access_token]" />
+				<http:header headerName="Accept" value="application/json" />
+			</http:request-builder>
+		</http:request>
+		<byte-array-to-string-transformer
+			doc:name="Array to String" />
+		<logger message="Dossier - #[payload]" level="INFO" doc:name="Logger" />
+		<catch-exception-strategy doc:name="Catch Exception Strategy">
+			<choice doc:name="Check if HTTP Retrurn Code is 401 (Unauthorized)">
+				<when expression="#[message.inboundProperties.'http.status' == 401]">
+					<flow-ref name="skryv_fetch_new_access_token" doc:name="skryv_fetch_new_access_token" />
+					<flow-ref name="skryv_dossier_get" doc:name="skryv_dossier_get" />
+				</when>
+				<otherwise>
+					<scripting:transformer doc:name="No - Throw Error">
+						<scripting:script engine="Groovy"><![CDATA[throw new java.lang.Exception("Response code " + message.getInboundProperty('http.status') + " mapped as failure. Message payload is of type: BufferInputStream");]]></scripting:script>
+					</scripting:transformer>
+				</otherwise>
+			</choice>
+		</catch-exception-strategy>
+	</flow>
+	<sub-flow name="skryv_get_access_token">
+		<until-successful maxRetries="5" doc:name="Until Successful"
+			synchronous="true">
+			<db:select config-ref="Generic_Database_Configuration_Postgres"
+				doc:name="Retrieve access_token">
+				<db:parameterized-query><![CDATA[select *
 from ${db.skryv_token}
 where id = 1]]></db:parameterized-query>
-            </db:select>
-        </until-successful>
-        <set-variable variableName="access_token" value="#[payload[0].access_token]" doc:name="Set access_token"/>
-    </sub-flow>
+			</db:select>
+		</until-successful>
+		<choice doc:name="Check if access_token is empty">
+			<when expression="#[payload[0].access_token == empty]">
+				<set-variable variableName="access_token" value="#['']"
+					mimeType="text/plain" doc:name="True - Set access_token to empty string" />
+			</when>
+			<otherwise>
+				<set-variable variableName="access_token" value="#[payload[0].access_token]"
+					mimeType="text/plain" doc:name="Set access_token" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="skryv_fetch_new_access_token">
+		<set-payload value="null" doc:name="Set Payload to empty" />
+		<set-attachment attachmentName="client_secret" value="${skryv.client_secret}"
+			contentType="text/plain" doc:name="client_secret" />
+		<set-attachment attachmentName="client_id" value="${skryv.client_id}"
+			contentType="text/plain" doc:name="client_id" />
+		<set-attachment attachmentName="grant_type" value="password"
+			contentType="text/plain" doc:name="grant_type (password)" />
+		<set-attachment attachmentName="username" value="${skryv.username}"
+			contentType="text/plain" doc:name="username" />
+		<set-attachment attachmentName="password" value="${skryv.password}"
+			contentType="text/plain" doc:name="password" />
+		<http:request config-ref="HTTP_Request_Configuration_Skryv_OAUTH"
+			path="/oauth/token" method="POST" doc:name="Send POST to Skryv OAUTH Server - /token" />
+		<json:json-to-object-transformer
+			returnClass="java.util.HashMap" doc:name="HashMap" />
+		<set-variable variableName="access_token" value="#[payload['access_token']]"
+			doc:name="Set access_token" />
+		<db:update config-ref="Generic_Database_Configuration_Postgres"
+			doc:name="Save access_token">
+			<db:parameterized-query><![CDATA[UPDATE ${db.skryv_token}
+SET access_token = #[flowVars.access_token]
+where id = 1]]></db:parameterized-query>
+		</db:update>
+	</sub-flow>
 </mule>
