@@ -9,15 +9,15 @@ http://www.mulesoft.org/schema/mule/ldap http://www.mulesoft.org/schema/mule/lda
 http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/quartz/current/mule-quartz.xsd
 http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
-    <validation:config name="Validation_Configuration" doc:name="Validation Configuration"/>
+    <validation:config name="Validation_Configuration_ldap" doc:name="Validation Configuration"/>
     <sub-flow name="ldap_company_get_id_by_or_number">
         <ldap:search config-ref="LDAP_Configuration" baseDn="${ldap.base_dn}" filter="(&amp;(objectClass=organization)(o=#[flowVars.or_number]))" scope="SUB_TREE" structuralObjectClass="organization" doc:name="LDAP - Get Company by OR Number">
             <ldap:attributes>
                 <ldap:attribute>x-be-viaa-externalId</ldap:attribute>
             </ldap:attributes>
         </ldap:search>
-        <validation:is-not-empty config-ref="Validation_Configuration" message="No LDAP entry found with Attribute o=#[flowVars.or_number]" value="#[payload]" doc:name="Validation - No LDAP entry found"/>
-        <validation:validate-size config-ref="Validation_Configuration" message="More than one LDAP entry found with Attribute o=#[flowVars.or_number]" value="#[payload]" min="1" max="1" doc:name="Validation - More than one LDAP entry found "/>
+        <validation:is-not-empty config-ref="Validation_Configuration_ldap" message="No LDAP entry found with Attribute o=#[flowVars.or_number]" value="#[payload]" doc:name="Validation - No LDAP entry found"/>
+        <validation:validate-size config-ref="Validation_Configuration_ldap" message="More than one LDAP entry found with Attribute o=#[flowVars.or_number]" value="#[payload]" min="1" max="1" doc:name="Validation - More than one LDAP entry found "/>
         <set-variable variableName="company_id" value="#[payload[0].getAttributes().getAttribute(&quot;x-be-viaa-externalId&quot;).getValue()]" doc:name="Set company_id"/>
         <set-variable variableName="state" value="LDAP_GET_COMPANY_ID" doc:name="Variable - state - LDAP_GET_COMPANY_ID"/>
         <flow-ref name="esearch_publish_log_message" doc:name="esearch_publish_log_message"/>

@@ -15,11 +15,13 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/amqps http://www.mulesoft.org/schema/mule/amqps/current/mule-amqps.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
 http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
-    <sub-flow name="crm_company_set_api_fields">
-        <choice doc:name="Choice">
-            <when expression="#[flowVars.'x-skryv-event' == 'process' &amp;&amp; flowVars.action == 'created' &amp;&amp; flowVars.process_key == 'Intentieverklaring_v2']">
-                <dw:transform-message doc:name="1- ITV - process - opgestuurd naar CP (proces ITV opgestart)">
-                    <dw:set-payload><![CDATA[%dw 1.0
+	<sub-flow name="crm_company_process_set_api_fields">
+		<choice doc:name="Choice">
+			<when
+				expression="#[flowVars.'x-skryv-event' == 'process' &amp;&amp; flowVars.action == 'created' &amp;&amp; flowVars.process_key == 'Intentieverklaring_v2']">
+				<dw:transform-message
+					doc:name="1- ITV - process - opgestuurd naar CP (proces ITV opgestart)">
+					<dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 ---
 { api_group : p('teamleader.api_group'),
@@ -31,86 +33,13 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
   ("custom_field_" ++ p('teamleader.company.intentieverklaring')) : "",
   ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "0"
 }]]></dw:set-payload>
-                </dw:transform-message>
-            </when>
-            <when expression="#[flowVars.'x-skryv-event' == 'milestone' &amp;&amp; flowVars.action == 'reached' &amp;&amp; flowVars.milestone_key == 'IntermediateThrowEvent_DS_ITV_geeninteressesamenwerkingVIAA' &amp;&amp; flowVars.milestone_status == 'Geen interesse']">
-                <dw:transform-message doc:name="2 - ITV - Milestone &quot;Geen interesse&quot;">
-                    <dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-{ api_group : p('teamleader.api_group'),
-  api_secret : p('teamleader.api_secret'),
-  track_changes : "1",
-  company_id : flowVars.company_id,
-  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.nee'),
-  ("custom_field_" ++ p('teamleader.company.intentieverklaring')) :  p('teamleader.company.intentieverklaring.ingevuld'),
-  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "0"
-}]]></dw:set-payload>
-                </dw:transform-message>
-            </when>
-            <when expression="#[flowVars.'x-skryv-event' == 'milestone' &amp;&amp; flowVars.action == 'reached' &amp;&amp; flowVars.milestone_key == 'IntermediateThrowEvent_DS_ITV_misschienlatersamenwerkingVIAA' &amp;&amp; flowVars.milestone_status == 'Misschien later samenwerking']">
-                <dw:transform-message doc:name="3 - ITV - Milestone &quot;Misschien later samenwerking&quot;">
-                    <dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-{ api_group : p('teamleader.api_group'),
-  api_secret : p('teamleader.api_secret'),
-  track_changes : "1",
-  company_id : flowVars.company_id,
-  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.pending'),
-  ("custom_field_" ++ p('teamleader.company.intentieverklaring')) :  p('teamleader.company.intentieverklaring.pending'),
-  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "0"
-}]]></dw:set-payload>
-                </dw:transform-message>
-            </when>
-            <when expression="#[flowVars.'x-skryv-event' == 'milestone' &amp;&amp; flowVars.action == 'reached' &amp;&amp; flowVars.milestone_key == 'IntermediateThrowEvent_DS_ITV_akkoordITVenopstart' &amp;&amp; flowVars.milestone_status == 'Akkoord en opstart']">
-                <dw:transform-message doc:name="4 - ITV - Milestone &quot;Akkoord en opstart&quot;">
-                    <dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-{ api_group : p('teamleader.api_group'),
-  api_secret : p('teamleader.api_secret'),
-  track_changes : "1",
-  company_id : flowVars.company_id,
-  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.ja'),
-  ("custom_field_" ++ p('teamleader.company.intentieverklaring')) :  p('teamleader.company.intentieverklaring.ingevuld'),
-  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "1"
-}]]></dw:set-payload>
-                </dw:transform-message>
-            </when>
-            <when expression="#[flowVars.'x-skryv-event' == 'milestone' &amp;&amp; flowVars.action == 'reached' &amp;&amp; flowVars.milestone_key == 'IntermediateThrowEvent_DS_ITV_akkoordITVgeenopstart' &amp;&amp; flowVars.milestone_status == 'Akkoord, geen opstart']">
-                <dw:transform-message doc:name="5 - ITV - Milestone &quot;Akkoord, geen opstart&quot;">
-                    <dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-{ api_group : p('teamleader.api_group'),
-  api_secret : p('teamleader.api_secret'),
-  track_changes : "1",
-  company_id : flowVars.company_id,
-  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.ja'),
-  ("custom_field_" ++ p('teamleader.company.intentieverklaring')) :  p('teamleader.company.intentieverklaring.ingevuld'),
-  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "0"
-}]]></dw:set-payload>
-                </dw:transform-message>
-            </when>
-            <when expression="#[flowVars.'x-skryv-event' == 'milestone' &amp;&amp; flowVars.action == 'reached' &amp;&amp; flowVars.milestone_key == 'IntermediateThrowEvent_DS_ITV_interesse_nietakkoordSWO' &amp;&amp; flowVars.milestone_status == 'Interesse, niet akkoord SWO']">
-                <dw:transform-message doc:name="6 - ITV - Milestone &quot;Interesse, niet akkoord met SWO&quot;">
-                    <dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-{ api_group : p('teamleader.api_group'),
-  api_secret : p('teamleader.api_secret'),
-  track_changes : "1",
-  company_id : flowVars.company_id,
-  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.pending'),
-  ("custom_field_" ++ p('teamleader.company.intentieverklaring')) :  p('teamleader.company.intentieverklaring.pending'),
-  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "0"
-}]]></dw:set-payload>
-                </dw:transform-message>
-            </when>
-            <when expression="#[flowVars.'x-skryv-event' == 'process' &amp;&amp; flowVars.action == 'ended' &amp;&amp; flowVars.process_key == 'so_ondertekenproces']">
-                <dw:transform-message doc:name="7 - SEO -process - getekend opgeladen door VIAA">
-                    <dw:set-payload><![CDATA[%dw 1.0
+				</dw:transform-message>
+			</when>
+			<when
+				expression="#[flowVars.'x-skryv-event' == 'process' &amp;&amp; flowVars.action == 'ended' &amp;&amp; flowVars.process_key == 'so_ondertekenproces']">
+				<dw:transform-message
+					doc:name="7 - SEO -process - getekend opgeladen door VIAA">
+					<dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 ---
 { api_group : p('teamleader.api_group'),
@@ -122,11 +51,12 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
   ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "1",
   ("custom_field_" ++ p('teamleader.company.samenwerkingsovereenkomst')) : "1"
 }]]></dw:set-payload>
-                </dw:transform-message>
-            </when>
-            <when expression="#[flowVars.'x-skryv-event' == 'process' &amp;&amp; flowVars.action == 'created' &amp;&amp; flowVars.process_key == 'service_agreement']">
-                <dw:transform-message doc:name="8 - SA -process - opstarten proces">
-                    <dw:set-payload><![CDATA[%dw 1.0
+				</dw:transform-message>
+			</when>
+			<when
+				expression="#[flowVars.'x-skryv-event' == 'process' &amp;&amp; flowVars.action == 'created' &amp;&amp; flowVars.process_key == 'service_agreement']">
+				<dw:transform-message doc:name="8 - SA - process - opstarten proces">
+					<dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 ---
 { api_group : p('teamleader.api_group'),
@@ -135,11 +65,13 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
   company_id : flowVars.company_id,
   ("custom_field_" ++ p('teamleader.company.actief')) : p('teamleader.company.actief.ja')
 }]]></dw:set-payload>
-                </dw:transform-message>
-            </when>
-            <when expression="#[flowVars.'x-skryv-event' == 'process' &amp;&amp; flowVars.action == 'ended' &amp;&amp; flowVars.process_key == 'service_agreement']">
-                <dw:transform-message doc:name="9 - SA - process - getekend opgeladen en goedgekeurd door VIAA">
-                    <dw:set-payload><![CDATA[%dw 1.0
+				</dw:transform-message>
+			</when>
+			<when
+				expression="#[flowVars.'x-skryv-event' == 'process' &amp;&amp; flowVars.action == 'ended' &amp;&amp; flowVars.process_key == 'service_agreement']">
+				<dw:transform-message
+					doc:name="9 - SA - process - getekend opgeladen en goedgekeurd door VIAA">
+					<dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 ---
 { api_group : p('teamleader.api_group'),
@@ -149,13 +81,138 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
   ("custom_field_" ++ p('teamleader.company.actief')) : p('teamleader.company.actief.ja'),
   ("custom_field_" ++ p('teamleader.company.service_agreement')) : "1"
 }]]></dw:set-payload>
-                </dw:transform-message>
-            </when>
-            <otherwise>
-                <set-variable variableName="skip_event" value="true" doc:name="Set skip_event=true"/>
-            </otherwise>
-        </choice>
-    </sub-flow>
+				</dw:transform-message>
+			</when>
+			<otherwise>
+				<set-variable variableName="skip_event" value="true"
+					doc:name="Set skip_event=true" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="crm_company_milestone_set_api_fields">
+		<choice doc:name="Choice">
+			<when
+				expression="#[flowVars.'x-skryv-event' == 'milestone' &amp;&amp; flowVars.action == 'reached' &amp;&amp; flowVars.milestone_key == 'IntermediateThrowEvent_DS_ITV_geeninteressesamenwerkingVIAA' &amp;&amp; flowVars.milestone_status == 'Geen interesse']">
+				<dw:transform-message
+					doc:name="2 - ITV - Milestone &quot;Geen interesse&quot;">
+					<dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  company_id : flowVars.company_id,
+  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.nee'),
+  ("custom_field_" ++ p('teamleader.company.intentieverklaring')) :  p('teamleader.company.intentieverklaring.ingevuld'),
+  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "0"
+}]]></dw:set-payload>
+				</dw:transform-message>
+			</when>
+			<when
+				expression="#[flowVars.'x-skryv-event' == 'milestone' &amp;&amp; flowVars.action == 'reached' &amp;&amp; flowVars.milestone_key == 'IntermediateThrowEvent_DS_ITV_misschienlatersamenwerkingVIAA' &amp;&amp; flowVars.milestone_status == 'Misschien later samenwerking']">
+				<dw:transform-message
+					doc:name="3 - ITV - Milestone &quot;Misschien later samenwerking&quot;">
+					<dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  company_id : flowVars.company_id,
+  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.pending'),
+  ("custom_field_" ++ p('teamleader.company.intentieverklaring')) :  p('teamleader.company.intentieverklaring.pending'),
+  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "0"
+}]]></dw:set-payload>
+				</dw:transform-message>
+			</when>
+			<when
+				expression="#[flowVars.'x-skryv-event' == 'milestone' &amp;&amp; flowVars.action == 'reached' &amp;&amp; flowVars.milestone_key == 'IntermediateThrowEvent_DS_ITV_akkoordITVenopstart' &amp;&amp; flowVars.milestone_status == 'Akkoord en opstart']">
+				<dw:transform-message
+					doc:name="4 - ITV - Milestone &quot;Akkoord en opstart&quot;">
+					<dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  company_id : flowVars.company_id,
+  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.ja'),
+  ("custom_field_" ++ p('teamleader.company.intentieverklaring')) :  p('teamleader.company.intentieverklaring.ingevuld'),
+  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "1"
+}]]></dw:set-payload>
+				</dw:transform-message>
+			</when>
+			<when
+				expression="#[flowVars.'x-skryv-event' == 'milestone' &amp;&amp; flowVars.action == 'reached' &amp;&amp; flowVars.milestone_key == 'IntermediateThrowEvent_DS_ITV_akkoordITVgeenopstart' &amp;&amp; flowVars.milestone_status == 'Akkoord, geen opstart']">
+				<dw:transform-message
+					doc:name="5 - ITV - Milestone &quot;Akkoord, geen opstart&quot;">
+					<dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  company_id : flowVars.company_id,
+  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.ja'),
+  ("custom_field_" ++ p('teamleader.company.intentieverklaring')) :  p('teamleader.company.intentieverklaring.ingevuld'),
+  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "0"
+}]]></dw:set-payload>
+				</dw:transform-message>
+			</when>
+			<when
+				expression="#[flowVars.'x-skryv-event' == 'milestone' &amp;&amp; flowVars.action == 'reached' &amp;&amp; flowVars.milestone_key == 'IntermediateThrowEvent_DS_ITV_interesse_nietakkoordSWO' &amp;&amp; flowVars.milestone_status == 'Interesse, niet akkoord SWO']">
+				<dw:transform-message
+					doc:name="6 - ITV - Milestone &quot;Interesse, niet akkoord met SWO&quot;">
+					<dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  company_id : flowVars.company_id,
+  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.pending'),
+  ("custom_field_" ++ p('teamleader.company.intentieverklaring')) :  p('teamleader.company.intentieverklaring.pending'),
+  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "0"
+}]]></dw:set-payload>
+				</dw:transform-message>
+			</when>
+<!-- 			<when expression="#[flowVars.'x-skryv-event' == 'document']"> -->
+<!-- 				<flow-ref name="crm_event_document_comment" doc:name="Document Event - Comment" /> -->
+<!-- 			</when> -->
+			<otherwise>
+				<set-variable variableName="skip_event" value="true"
+					doc:name="Set skip_event=true" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="crm_company_document_set_api_fields">
+		<choice doc:name="check comment_value is empty">
+			<when expression="#[flowVars.comment_value == empty]">
+				<set-variable variableName="skip_event" value="true"
+					doc:name="Set skip_event = true" />
+			</when>
+			<otherwise>
+                <choice doc:name="Check document_key">
+                    <when expression="#[flowVars.document_key == 'controle_intentieverklaring']">
+                        <dw:transform-message doc:name="OK - Update Comment">
+                            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  company_id : flowVars.company_id,
+  ("custom_field_" ++ p('teamleader.company.comment_intentieverklaring')) : flowVars.comment_value
+}]]></dw:set-payload>
+                        </dw:transform-message>
+                    </when>
+                    <otherwise>
+                        <set-variable variableName="skip_event" value="true" doc:name="Set skip_event = true"/>
+                    </otherwise>
+                </choice>
+			</otherwise>
+		</choice>
+	</sub-flow>
 	<sub-flow name="crm_company_update">
 		<set-variable variableName="http_post_body" value="#[payload]"
 			doc:name="Set - http_post_body" />
