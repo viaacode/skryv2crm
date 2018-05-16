@@ -172,7 +172,7 @@ payload]]></dw:set-payload>
 			value="#[message.inboundProperties.'x-skryv-hook-id']" doc:name="Set x-skryv-hook-id" />
 		<set-variable variableName="x-skryv-hook-id"
 			value="#[message.inboundProperties.'x-skryv-delivery']" doc:name="Set x-skryv-delivery" />
-        <set-variable variableName="document_key" value="#[payload.document_definitionKey]" doc:name="Set document_key"/>
+        <set-variable variableName="document_key" value="#[payload.document.definitionKey]" doc:name="Set document_key"/>
 		<set-variable variableName="comment_value_2"
 			value="#[payload.?document.?document.?value.?wij_zijn_genteresseerd_in_een_samenwerking_met_viaa.?reden.?text]"
 			doc:name="Set comment_value_2" />
@@ -185,6 +185,7 @@ payload]]></dw:set-payload>
 		<set-variable variableName="comment_value"
 			value="#[flowVars.comment_value_2 or flowVars.comment_value_3 or flowVars.comment_value_6]"
 			doc:name="Set comment_value" />
+        <set-variable variableName="skryv_dragers" value="#[payload.?document.?document.?value.?dragers]" doc:name="Set Dragers"/>
 		<flow-ref name="utils_set_esearch_variables" doc:name="utils_set_esearch_variables" />
 		<set-variable variableName="index" value="skryv2crm"
 			doc:name="Variable - index" />

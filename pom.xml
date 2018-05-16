@@ -34,6 +34,10 @@
                             <groupId>org.mule.modules</groupId>
                             <artifactId>mule-module-ldap</artifactId>
                         </inclusion>
+                    <inclusion>
+                            <groupId>org.mule.modules</groupId>
+                            <artifactId>mule-module-s3</artifactId>
+                        </inclusion>
                     </inclusions>
 				</configuration>
 			</plugin>
@@ -178,6 +182,11 @@
             <artifactId>mule-module-http</artifactId>
             <version>${mule.version}</version>
             <scope>provided</scope>
+        </dependency>
+    <dependency>
+            <groupId>org.mule.modules</groupId>
+            <artifactId>mule-module-s3</artifactId>
+            <version>4.2.0</version>
         </dependency>
     </dependencies>
 
