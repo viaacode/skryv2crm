@@ -16,7 +16,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
                 <ldap:attribute>x-be-viaa-externalId</ldap:attribute>
             </ldap:attributes>
         </ldap:search>
-        <validation:is-not-empty config-ref="Validation_Configuration_ldap" message="No LDAP entry found with Attribute o=#[flowVars.or_number]" value="#[payload]" doc:name="Validation - No LDAP entry found"/>
+        <validation:is-not-empty config-ref="Validation_Configuration_ldap" message="No LDAP entry found with Attribute 'o=#[flowVars.or_number]' for dossier '#[flowVars.dossier.id]' with label '#[flowVars.dossier.label]'" value="#[payload]" doc:name="Validation - No LDAP entry found"/>
         <validation:validate-size config-ref="Validation_Configuration_ldap" message="More than one LDAP entry found with Attribute o=#[flowVars.or_number]" value="#[payload]" min="1" max="1" doc:name="Validation - More than one LDAP entry found "/>
         <set-variable variableName="company_id" value="#[payload[0].getAttributes().getAttribute(&quot;x-be-viaa-externalId&quot;).getValue()]" doc:name="Set company_id"/>
         <set-variable variableName="state" value="LDAP_GET_COMPANY_ID" doc:name="Variable - state - LDAP_GET_COMPANY_ID"/>

@@ -21,7 +21,7 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
         <set-variable variableName="crm_dragers_string_comma" value="#[flowVars.company.custom_fields[flowVars.custom_field_dragers]]" doc:name="crm_dragers_string_comma"/>
         <choice doc:name="Check crm_dragers_string_comma">
             <when expression="#[flowVars.crm_dragers_string_comma == empty]">
-                <expression-component doc:name="empty - do nothing"><![CDATA[""]]></expression-component>
+                <set-variable variableName="crm_dragers_array_list" value="#[[]]" doc:name="empty - create crm_dragers_array_list"/>
             </when>
             <otherwise>
                 <dw:transform-message doc:name="splitBy comma - crm_dragers_array_list">
@@ -34,13 +34,14 @@ flowVars.crm_dragers_string_comma splitBy ","]]></dw:set-payload>
 ---
 flowVars.crm_dragers_string_comma splitBy ","]]></dw:set-variable>
                 </dw:transform-message>
+                <set-variable variableName="crm_dragers_array_list" value="#[payload]" doc:name="crm_dragers_array_list"/>
             </otherwise>
         </choice>
         <set-variable variableName="custom_field_golf" value="${teamleader.company.golf}" doc:name="Set custom_field_golf"/>
         <set-variable variableName="crm_golf_string_comma" value="#[flowVars.company.custom_fields[flowVars.custom_field_golf]]" doc:name="crm_golf_string_comma"/>
-        <choice doc:name="Check crm_dragers_string_comma">
+        <choice doc:name="Check crm_golf_string_comma">
             <when expression="#[flowVars.crm_golf_string_comma == empty]">
-                <expression-component doc:name="empty - do nothing"><![CDATA[""]]></expression-component>
+                <set-variable variableName="crm_golf_array_list" value="#[[]]" doc:name="empty - create crm_golf_array_list"/>
             </when>
             <otherwise>
                 <dw:transform-message doc:name="splitBy comma - crm_golf_array_list">
@@ -53,6 +54,7 @@ flowVars.crm_golf_string_comma splitBy ","]]></dw:set-payload>
 ---
 flowVars.crm_golf_string_comma splitBy ","]]></dw:set-variable>
                 </dw:transform-message>
+                <set-variable variableName="crm_golf_array_list" value="#[payload]" doc:name="crm_golf_array_list"/>
             </otherwise>
         </choice>
     </sub-flow>
@@ -90,20 +92,20 @@ flowVars.crm_golf_string_comma splitBy ","]]></dw:set-variable>
         <flow-ref name="xref_analoge_drager" doc:name="xref_analoge_drager"/>
         <flow-ref name="xref_golf" doc:name="xref_golf"/>
         <foreach collection="flowVars.skryv_dragers" doc:name="For Each - skryv_dragers">
-            <set-variable variableName="skryv_drager" value="#[payload.type_drager.Drager]" doc:name="skryv_drager"/>
+            <set-variable variableName="skryv_drager" value="#[payload.?type_drager.?Drager]" doc:name="skryv_drager"/>
             <set-variable variableName="skryv_xref_drager" value="#[flowVars.xref_analoge_drager[flowVars.skryv_drager]]" doc:name="skryv_xref_drager"/>
             <choice doc:name="Choice - crm_dragers_array_list.contains(skryv_xref_drager)">
-                <when expression="#[flowVars.crm_dragers_array_list == empty || flowVars.crm_dragers_array_list.contains(flowVars.skryv_xref_drager)]">
+                <when expression="#[flowVars.skryv_xref_drager == null || flowVars.?crm_dragers_array_list.contains(flowVars.skryv_xref_drager)]">
                     <expression-component doc:name="true - do nothing"><![CDATA[""]]></expression-component>
                 </when>
                 <otherwise>
                     <expression-component doc:name="crm_dragers_array_list add skryv_xref_drager"><![CDATA[flowVars.crm_dragers_array_list.add(flowVars.skryv_xref_drager)]]></expression-component>
                 </otherwise>
             </choice>
-            <set-variable variableName="skryv_golf" value="#[payload.digitalisatiegolf]" doc:name="skryv_golf"/>
+            <set-variable variableName="skryv_golf" value="#[payload.?digitalisatiegolf]" doc:name="skryv_golf"/>
             <set-variable variableName="skryv_xref_golf" value="#[flowVars.xref_golf[flowVars.skryv_golf]]" doc:name="skryv_xref_golf"/>
             <choice doc:name="Choice - crm_golf_array_list.contains(skryv_xref_golf)">
-                <when expression="#[flowVars.crm_golf_array_list == empty || flowVars.crm_golf_array_list.contains(flowVars.skryv_xref_golf)]">
+                <when expression="#[flowVars.skryv_golf == null || flowVars.?crm_golf_array_list.contains(flowVars.skryv_xref_golf)]">
                     <expression-component doc:name="true - do nothing"><![CDATA[""]]></expression-component>
                 </when>
                 <otherwise>
@@ -111,29 +113,38 @@ flowVars.crm_golf_string_comma splitBy ","]]></dw:set-variable>
                 </otherwise>
             </choice>
         </foreach>
-        <scripting:component doc:name="crm_dragers_string_comma_new to payload">
-            <scripting:script engine="Groovy"><![CDATA[import java.util.*;
+        <choice doc:name="Check crm_dragers_array_list">
+            <when expression="#[flowVars.crm_dragers_array_list == empty]">
+                <set-payload value="#[&quot;&quot;]" doc:name="empty - Set Payload. to empty"/>
+            </when>
+            <otherwise>
+                <scripting:component doc:name="crm_dragers_string_comma_new to payload">
+                    <scripting:script engine="Groovy"><![CDATA[import java.util.*;
 
   String crm_dragers_string_comma_new = new String();
   
-  if (crm_dragers_array_list != null) {
+  Collections.sort(crm_dragers_array_list);
 
-//    Collections.sort(crm_dragers_array_list);
-
-//    for(String drager: crm_dragers_array_list){
-//          if (crm_dragers_string_comma_new.isEmpty()){
-//            crm_dragers_string_comma_new = drager
-//          } else {
-//  	  	    crm_dragers_string_comma_new = crm_dragers_string_comma_new + ',' + drager
-//  	  	  }
-//      }
-    }
+  for(String drager: crm_dragers_array_list){
+        if (crm_dragers_string_comma_new.isEmpty()){
+          crm_dragers_string_comma_new = drager
+        } else {
+	  	    crm_dragers_string_comma_new = crm_dragers_string_comma_new + ',' + drager
+	  	  }
+    };
     
 return crm_dragers_string_comma_new;]]></scripting:script>
-        </scripting:component>
+                </scripting:component>
+            </otherwise>
+        </choice>
         <set-variable variableName="crm_dragers_string_comma_new" value="#[payload]" doc:name="crm_dragers_string_comma_new"/>
-        <scripting:component doc:name="crm_golf_string_comma_new to payload">
-            <scripting:script engine="Groovy"><![CDATA[import java.util.*;
+        <choice doc:name="Check - crm_golf_array_list">
+            <when expression="#[flowVars.crm_golf_array_list == empty]">
+                <set-payload value="#[&quot;&quot;]" doc:name="empty - Set Payload to empty"/>
+            </when>
+            <otherwise>
+                <scripting:component doc:name="crm_golf_string_comma_new to payload">
+                    <scripting:script engine="Groovy"><![CDATA[import java.util.*;
 
   String crm_golf_string_comma_new = new String();
   
@@ -148,7 +159,9 @@ return crm_dragers_string_comma_new;]]></scripting:script>
     };
     
 return crm_golf_string_comma_new;]]></scripting:script>
-        </scripting:component>
+                </scripting:component>
+            </otherwise>
+        </choice>
         <set-variable variableName="crm_golf_string_comma_new" value="#[payload]" doc:name="crm_golf_string_comma_new"/>
         <dw:transform-message doc:name="set payload for http call">
             <dw:set-payload><![CDATA[%dw 1.0

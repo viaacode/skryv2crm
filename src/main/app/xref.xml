@@ -19,13 +19,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 			<parse-template location="${environment}_xref_analoge_drager.json"
 				doc:name="Read - xref_analoge_drager.json"/>
 			<json:json-to-object-transformer
-				doc:name="JSON to Object" />
-			<dw:transform-message doc:name="LinkedHashMap">
-				<dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-payload]]></dw:set-payload>
-			</dw:transform-message>
+				doc:name="JSON to Object" encoding="UTF-8" mimeType="application/json" returnClass="java.util.LinkedHashMap"/>
 		</ee:cache>
 		<set-variable variableName="xref_analoge_drager" value="#[payload]"
 			doc:name="Set xref_analoge_drager" />
@@ -35,13 +29,7 @@ payload]]></dw:set-payload>
 			<parse-template location="${environment}_xref_golf.json"
 				doc:name="Read - xref_golf.json"/>
 			<json:json-to-object-transformer
-				doc:name="JSON to Object" />
-			<dw:transform-message doc:name="LinkedHashMap">
-				<dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-payload]]></dw:set-payload>
-			</dw:transform-message>
+				doc:name="JSON to Object" encoding="UTF-8" mimeType="application/json" returnClass="java.util.LinkedHashMap"/>
 		</ee:cache>
 		<set-variable variableName="xref_golf" value="#[payload]"
 			doc:name="Set xref_golf" />
