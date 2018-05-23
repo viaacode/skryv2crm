@@ -34,10 +34,7 @@
                             <groupId>org.mule.modules</groupId>
                             <artifactId>mule-module-ldap</artifactId>
                         </inclusion>
-                    <inclusion>
-                            <groupId>org.mule.modules</groupId>
-                            <artifactId>mule-module-s3</artifactId>
-                        </inclusion>
+                    
                     </inclusions>
 				</configuration>
 			</plugin>
@@ -105,24 +102,24 @@
 			<version>${mule.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.mulesoft.muleesb.transports</groupId>
-			<artifactId>mule-transport-jdbc-ee</artifactId>
-			<version>${mule.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.mulesoft.muleesb.transports</groupId>
-			<artifactId>mule-transport-jms-ee</artifactId>
-			<version>${mule.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mule.transports</groupId>
-			<artifactId>mule-transport-vm</artifactId>
-			<version>${mule.version}</version>
-			<scope>provided</scope>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.mulesoft.muleesb.transports</groupId> -->
+<!-- 			<artifactId>mule-transport-jdbc-ee</artifactId> -->
+<!-- 			<version>${mule.version}</version> -->
+<!-- 			<scope>provided</scope> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.mulesoft.muleesb.transports</groupId> -->
+<!-- 			<artifactId>mule-transport-jms-ee</artifactId> -->
+<!-- 			<version>${mule.version}</version> -->
+<!-- 			<scope>provided</scope> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.mule.transports</groupId> -->
+<!-- 			<artifactId>mule-transport-vm</artifactId> -->
+<!-- 			<version>${mule.version}</version> -->
+<!-- 			<scope>provided</scope> -->
+<!-- 		</dependency> -->
 		<!-- Mule Modules -->
 		<dependency>
 			<groupId>org.mule.modules</groupId>
@@ -183,11 +180,7 @@
             <version>${mule.version}</version>
             <scope>provided</scope>
         </dependency>
-    <dependency>
-            <groupId>org.mule.modules</groupId>
-            <artifactId>mule-module-s3</artifactId>
-            <version>4.2.0</version>
-        </dependency>
+    
     </dependencies>
 
 	<repositories>

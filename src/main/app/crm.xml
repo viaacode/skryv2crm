@@ -15,6 +15,30 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/amqps http://www.mulesoft.org/schema/mule/amqps/current/mule-amqps.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
 http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+    <sub-flow name="crm_company_document_set_api_fields_contact_gegevens">
+        <flow-ref name="xref_type_organisatie" doc:name="xref_type_organisatie"/>
+        <set-variable variableName="type_organisatie" value="#[xref_type_organisatie[flowVars.adres_en_contactgegevens.type_organisatie.selectedOption]]" doc:name="Set type_organisatie"/>
+        <dw:transform-message doc:name="Set API Fields">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  company_id : flowVars.company_id,
+  ("custom_field_" ++ p('teamleader.company.type_organisatie')) : flowVars.type_organisatie,
+  street : flowVars.adres_en_contactgegevens.postadres.straat,
+  number : flowVars.adres_en_contactgegevens.postadres.huisnummer,
+  zipcode : flowVars.adres_en_contactgegevens.postadres.postcode,
+  city : flowVars.adres_en_contactgegevens.postadres.gemeente,
+  email : flowVars.adres_en_contactgegevens.algemeen_emailadres,
+  telephone : flowVars.adres_en_contactgegevens.algemeen_telefoonnummer,
+  website : flowVars.adres_en_contactgegevens.website,
+  ("custom_field_" ++ p('teamleader.company.facturatie_emailadres')) : flowVars.adres_en_contactgegevens.facturatie_emailadres,
+  ("custom_field_" ++ p('teamleader.company.bestelbonnen')) : "1" when (flowVars.adres_en_contactgegevens.werkt_uw_organisatie_met_bestelbonnen_voor_de_facturatie.selectedOption == "ja") otherwise "0"
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </sub-flow>
     <sub-flow name="crm_company_document_get_dragers_golf">
         <flow-ref name="crm_company_get" doc:name="Get CRM Company"/>
         <set-variable variableName="custom_field_dragers" value="${teamleader.company.analoge_dragers}" doc:name="Set custom_field_dragers"/>
@@ -353,6 +377,9 @@ return crm_golf_string_comma_new;]]></scripting:script>
 				<flow-ref name="crm_company_document_set_api_fields_drager_golf"
 					doc:name="Update Dragers en Golf" />
 			</when>
+            <when expression="#[flowVars.document_key == 'controle_intentieverklaring_v2']">
+                <flow-ref name="crm_company_document_set_api_fields_contact_gegevens" doc:name="Update Contact Gegevens"/>
+            </when>
 			<otherwise>
 				<flow-ref name="crm_company_document_set_api_fields_comment"
 					doc:name="Update Comments" />

@@ -83,6 +83,7 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 		<logger
 			message="PAYLOAD: #[message.payloadAs(java.lang.String) + &quot;\n\nQuery params:&quot; + message.inboundProperties.'http.query.params' + &quot;\n\nHeaders: &quot; + message.inboundProperties + &quot;\n-------------------------\n&quot;]"
 			level="INFO" doc:name="Log" />
+        <set-variable variableName="webhook_data_string" value="#[message.payloadAs(java.lang.String)]" doc:name="webhook_data_string"/>
 		<dw:transform-message doc:name="Convert to LinkedHashMap">
 			<dw:set-payload><![CDATA[%dw 1.0
 %output application/java
@@ -120,6 +121,7 @@ payload]]></dw:set-payload>
 		<logger
 			message="PAYLOAD: #[message.payloadAs(java.lang.String) + &quot;\n\nQuery params:&quot; + message.inboundProperties.'http.query.params' + &quot;\n\nHeaders: &quot; + message.inboundProperties + &quot;\n-------------------------\n&quot;]"
 			level="INFO" doc:name="Log" />
+        <set-variable variableName="webhook_data_string" value="#[message.payloadAs(java.lang.String)]" doc:name="webhook_data_string"/>
 		<dw:transform-message doc:name="Convert to LinkedHashMap">
 			<dw:set-payload><![CDATA[%dw 1.0
 %output application/java
@@ -154,6 +156,7 @@ payload]]></dw:set-payload>
 		<logger
 			message="PAYLOAD: #[message.payloadAs(java.lang.String) + &quot;\n\nQuery params:&quot; + message.inboundProperties.'http.query.params' + &quot;\n\nHeaders: &quot; + message.inboundProperties + &quot;\n-------------------------\n&quot;]"
 			level="INFO" doc:name="Log" />
+        <set-variable variableName="webhook_data_string" value="#[message.payloadAs(java.lang.String)]" doc:name="webhook_data_string"/>
 		<dw:transform-message doc:name="Convert to LinkedHashMap">
 			<dw:set-payload><![CDATA[%dw 1.0
 %output application/java
@@ -173,19 +176,38 @@ payload]]></dw:set-payload>
 		<set-variable variableName="x-skryv-hook-id"
 			value="#[message.inboundProperties.'x-skryv-delivery']" doc:name="Set x-skryv-delivery" />
         <set-variable variableName="document_key" value="#[payload.document.definitionKey]" doc:name="Set document_key"/>
-		<set-variable variableName="comment_value_2"
-			value="#[payload.?document.?document.?value.?wij_zijn_genteresseerd_in_een_samenwerking_met_viaa.?reden.?text]"
-			doc:name="Set comment_value_2" />
-		<set-variable variableName="comment_value_3"
-			value="#[payload.?document.?document.?value.?wij_zijn_genteresseerd_in_een_samenwerking_met_viaa.?reden_1.?text]"
-			doc:name="Set comment_value_3" />
-		<set-variable variableName="comment_value_6"
-			value="#[payload.?document.?document.?value.?wij_hebben_kennis_genomen_van_de_samenwerkingsovereenkomst_met_viaa_en_zullen_deze_overeenkomst_binnen_een_termijn_van_maximum_8_weken_ter_goedkeuring_laten_ondertekenen_door_de_bevoegde_personeninstantie.?verduidelijk.?text]"
-			doc:name="Set comment_value_6" />
+        <dw:transform-message doc:name="comment_values">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+            <dw:set-variable variableName="comment_value_2"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.document.document.value.wij_zijn_genteresseerd_in_een_samenwerking_met_viaa.reden.text]]></dw:set-variable>
+            <dw:set-variable variableName="comment_value_3"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.document.document.value.wij_zijn_genteresseerd_in_een_samenwerking_met_viaa.reden_1.text]]></dw:set-variable>
+            <dw:set-variable variableName="comment_value_6"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.document.document.value.wij_hebben_kennis_genomen_van_de_samenwerkingsovereenkomst_met_viaa_en_zullen_deze_overeenkomst_binnen_een_termijn_van_maximum_8_weken_ter_goedkeuring_laten_ondertekenen_door_de_bevoegde_personeninstantie.verduidelijk.text]]></dw:set-variable>
+        </dw:transform-message>
+<!-- 		<set-variable variableName="comment_value_2" -->
+<!-- 			value="#[payload.?document.?document.?value.?wij_zijn_genteresseerd_in_een_samenwerking_met_viaa.?reden.?text]" -->
+<!-- 			doc:name="Set comment_value_2" /> -->
+<!-- 		<set-variable variableName="comment_value_3" -->
+<!-- 			value="#[payload.?document.?document.?value.?wij_zijn_genteresseerd_in_een_samenwerking_met_viaa.?reden_1.?text]" -->
+<!-- 			doc:name="Set comment_value_3" /> -->
+<!-- 		<set-variable variableName="comment_value_6" -->
+<!-- 			value="#[payload.?document.?document.?value.?wij_hebben_kennis_genomen_van_de_samenwerkingsovereenkomst_met_viaa_en_zullen_deze_overeenkomst_binnen_een_termijn_van_maximum_8_weken_ter_goedkeuring_laten_ondertekenen_door_de_bevoegde_personeninstantie.?verduidelijk.?text]" -->
+<!-- 			doc:name="Set comment_value_6" /> -->
 		<set-variable variableName="comment_value"
 			value="#[flowVars.comment_value_2 or flowVars.comment_value_3 or flowVars.comment_value_6]"
 			doc:name="Set comment_value" />
         <set-variable variableName="skryv_dragers" value="#[payload.?document.?document.?value.?dragers]" doc:name="Set Dragers"/>
+        <set-variable variableName="adres_en_contactgegevens" value="#[payload.?document.?document.?value.adres_en_contactgegevens]" doc:name="Set adres_en_contactgegevens"/>
 		<flow-ref name="utils_set_esearch_variables" doc:name="utils_set_esearch_variables" />
 		<set-variable variableName="index" value="skryv2crm"
 			doc:name="Variable - index" />

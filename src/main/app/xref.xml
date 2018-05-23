@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
-	xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata"
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata"
 	xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:quartz="http://www.mulesoft.org/schema/mule/quartz"
 	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -17,21 +17,34 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 	<sub-flow name="xref_analoge_drager">
 		<ee:cache doc:name="Cache">
 			<parse-template location="${environment}_xref_analoge_drager.json"
-				doc:name="Read - xref_analoge_drager.json"/>
+				doc:name="Read - xref_analoge_drager.json" />
 			<json:json-to-object-transformer
-				doc:name="JSON to Object" encoding="UTF-8" mimeType="application/json" returnClass="java.util.LinkedHashMap"/>
+				doc:name="JSON to Object" encoding="UTF-8" mimeType="application/json"
+				returnClass="java.util.LinkedHashMap" />
 		</ee:cache>
 		<set-variable variableName="xref_analoge_drager" value="#[payload]"
 			doc:name="Set xref_analoge_drager" />
 	</sub-flow>
-		<sub-flow name="xref_golf">
+	<sub-flow name="xref_golf">
 		<ee:cache doc:name="Cache">
 			<parse-template location="${environment}_xref_golf.json"
-				doc:name="Read - xref_golf.json"/>
+				doc:name="Read - xref_golf.json" />
 			<json:json-to-object-transformer
-				doc:name="JSON to Object" encoding="UTF-8" mimeType="application/json" returnClass="java.util.LinkedHashMap"/>
+				doc:name="JSON to Object" encoding="UTF-8" mimeType="application/json"
+				returnClass="java.util.LinkedHashMap" />
 		</ee:cache>
 		<set-variable variableName="xref_golf" value="#[payload]"
 			doc:name="Set xref_golf" />
+	</sub-flow>
+	<sub-flow name="xref_type_organisatie">
+		<ee:cache doc:name="Cache">
+			<parse-template location="${environment}_xref_type_organisatie.json"
+				doc:name="Read - xref_type_organisatie.json" />
+			<json:json-to-object-transformer
+				doc:name="JSON to Object" encoding="UTF-8" mimeType="application/json"
+				returnClass="java.util.LinkedHashMap" />
+		</ee:cache>
+		<set-variable variableName="xref_type_organisatie" value="#[payload]"
+			doc:name="Set xref_type_organisatie" />
 	</sub-flow>
 </mule>
