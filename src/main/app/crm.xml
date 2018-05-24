@@ -15,11 +15,13 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/amqps http://www.mulesoft.org/schema/mule/amqps/current/mule-amqps.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
 http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
-    <sub-flow name="crm_company_document_set_api_fields_contact_gegevens">
-        <flow-ref name="xref_type_organisatie" doc:name="xref_type_organisatie"/>
-        <set-variable variableName="type_organisatie" value="#[xref_type_organisatie[flowVars.adres_en_contactgegevens.type_organisatie.selectedOption]]" doc:name="Set type_organisatie"/>
-        <dw:transform-message doc:name="Set API Fields">
-            <dw:set-payload><![CDATA[%dw 1.0
+	<sub-flow name="crm_company_document_set_api_fields_contact_gegevens">
+		<flow-ref name="xref_type_organisatie" doc:name="xref_type_organisatie" />
+		<set-variable variableName="type_organisatie"
+			value="#[xref_type_organisatie[flowVars.adres_en_contactgegevens.type_organisatie.selectedOption]]"
+			doc:name="Set type_organisatie" />
+		<dw:transform-message doc:name="Set API Fields">
+			<dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 ---
 { api_group : p('teamleader.api_group'),
@@ -37,51 +39,62 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
   ("custom_field_" ++ p('teamleader.company.facturatie_emailadres')) : flowVars.adres_en_contactgegevens.facturatie_emailadres,
   ("custom_field_" ++ p('teamleader.company.bestelbonnen')) : "1" when (flowVars.adres_en_contactgegevens.werkt_uw_organisatie_met_bestelbonnen_voor_de_facturatie.selectedOption == "ja") otherwise "0"
 }]]></dw:set-payload>
-        </dw:transform-message>
-    </sub-flow>
-    <sub-flow name="crm_company_document_get_dragers_golf">
-        <flow-ref name="crm_company_get" doc:name="Get CRM Company"/>
-        <set-variable variableName="custom_field_dragers" value="${teamleader.company.analoge_dragers}" doc:name="Set custom_field_dragers"/>
-        <set-variable variableName="crm_dragers_string_comma" value="#[flowVars.company.custom_fields[flowVars.custom_field_dragers]]" doc:name="crm_dragers_string_comma"/>
-        <choice doc:name="Check crm_dragers_string_comma">
-            <when expression="#[flowVars.crm_dragers_string_comma == empty]">
-                <set-variable variableName="crm_dragers_array_list" value="#[[]]" doc:name="empty - create crm_dragers_array_list"/>
-            </when>
-            <otherwise>
-                <dw:transform-message doc:name="splitBy comma - crm_dragers_array_list">
-                    <dw:set-payload><![CDATA[%dw 1.0
+		</dw:transform-message>
+        <set-variable variableName="crm_contact_actions" value="true" doc:name="Set crm_contact_actions"/>
+	</sub-flow>
+	<sub-flow name="crm_company_document_get_dragers_golf">
+		<flow-ref name="crm_company_get" doc:name="Get CRM Company" />
+		<set-variable variableName="custom_field_dragers"
+			value="${teamleader.company.analoge_dragers}" doc:name="Set custom_field_dragers" />
+		<set-variable variableName="crm_dragers_string_comma"
+			value="#[flowVars.company.custom_fields[flowVars.custom_field_dragers]]"
+			doc:name="crm_dragers_string_comma" />
+		<choice doc:name="Check crm_dragers_string_comma">
+			<when expression="#[flowVars.crm_dragers_string_comma == empty]">
+				<set-variable variableName="crm_dragers_array_list"
+					value="#[[]]" doc:name="empty - create crm_dragers_array_list" />
+			</when>
+			<otherwise>
+				<dw:transform-message doc:name="splitBy comma - crm_dragers_array_list">
+					<dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 ---
 flowVars.crm_dragers_string_comma splitBy ","]]></dw:set-payload>
-                    <dw:set-variable variableName="crm_dragers_array_list"><![CDATA[%dw 1.0
+					<dw:set-variable variableName="crm_dragers_array_list"><![CDATA[%dw 1.0
 %output application/java
 ---
 flowVars.crm_dragers_string_comma splitBy ","]]></dw:set-variable>
-                </dw:transform-message>
-                <set-variable variableName="crm_dragers_array_list" value="#[payload]" doc:name="crm_dragers_array_list"/>
-            </otherwise>
-        </choice>
-        <set-variable variableName="custom_field_golf" value="${teamleader.company.golf}" doc:name="Set custom_field_golf"/>
-        <set-variable variableName="crm_golf_string_comma" value="#[flowVars.company.custom_fields[flowVars.custom_field_golf]]" doc:name="crm_golf_string_comma"/>
-        <choice doc:name="Check crm_golf_string_comma">
-            <when expression="#[flowVars.crm_golf_string_comma == empty]">
-                <set-variable variableName="crm_golf_array_list" value="#[[]]" doc:name="empty - create crm_golf_array_list"/>
-            </when>
-            <otherwise>
-                <dw:transform-message doc:name="splitBy comma - crm_golf_array_list">
-                    <dw:set-payload><![CDATA[%dw 1.0
+				</dw:transform-message>
+				<set-variable variableName="crm_dragers_array_list"
+					value="#[payload]" doc:name="crm_dragers_array_list" />
+			</otherwise>
+		</choice>
+		<set-variable variableName="custom_field_golf" value="${teamleader.company.golf}"
+			doc:name="Set custom_field_golf" />
+		<set-variable variableName="crm_golf_string_comma"
+			value="#[flowVars.company.custom_fields[flowVars.custom_field_golf]]"
+			doc:name="crm_golf_string_comma" />
+		<choice doc:name="Check crm_golf_string_comma">
+			<when expression="#[flowVars.crm_golf_string_comma == empty]">
+				<set-variable variableName="crm_golf_array_list" value="#[[]]"
+					doc:name="empty - create crm_golf_array_list" />
+			</when>
+			<otherwise>
+				<dw:transform-message doc:name="splitBy comma - crm_golf_array_list">
+					<dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 ---
 flowVars.crm_golf_string_comma splitBy ","]]></dw:set-payload>
-                    <dw:set-variable variableName="crm_golf_array_list"><![CDATA[%dw 1.0
+					<dw:set-variable variableName="crm_golf_array_list"><![CDATA[%dw 1.0
 %output application/java
 ---
 flowVars.crm_golf_string_comma splitBy ","]]></dw:set-variable>
-                </dw:transform-message>
-                <set-variable variableName="crm_golf_array_list" value="#[payload]" doc:name="crm_golf_array_list"/>
-            </otherwise>
-        </choice>
-    </sub-flow>
+				</dw:transform-message>
+				<set-variable variableName="crm_golf_array_list" value="#[payload]"
+					doc:name="crm_golf_array_list" />
+			</otherwise>
+		</choice>
+	</sub-flow>
 	<sub-flow name="crm_company_document_set_api_fields_comment">
 		<choice doc:name="check comment_value is empty">
 			<when expression="#[flowVars.comment_value == empty]">
@@ -112,38 +125,47 @@ flowVars.crm_golf_string_comma splitBy ","]]></dw:set-variable>
 		</choice>
 	</sub-flow>
 	<sub-flow name="crm_company_document_set_api_fields_drager_golf">
-        <flow-ref name="crm_company_document_get_dragers_golf" doc:name="crm_company_document_get_dragers_golf"/>
-        <flow-ref name="xref_analoge_drager" doc:name="xref_analoge_drager"/>
-        <flow-ref name="xref_golf" doc:name="xref_golf"/>
-        <foreach collection="flowVars.skryv_dragers" doc:name="For Each - skryv_dragers">
-            <set-variable variableName="skryv_drager" value="#[payload.?type_drager.?Drager]" doc:name="skryv_drager"/>
-            <set-variable variableName="skryv_xref_drager" value="#[flowVars.xref_analoge_drager[flowVars.skryv_drager]]" doc:name="skryv_xref_drager"/>
-            <choice doc:name="Choice - crm_dragers_array_list.contains(skryv_xref_drager)">
-                <when expression="#[flowVars.skryv_xref_drager == null || flowVars.?crm_dragers_array_list.contains(flowVars.skryv_xref_drager)]">
-                    <expression-component doc:name="true - do nothing"><![CDATA[""]]></expression-component>
-                </when>
-                <otherwise>
-                    <expression-component doc:name="crm_dragers_array_list add skryv_xref_drager"><![CDATA[flowVars.crm_dragers_array_list.add(flowVars.skryv_xref_drager)]]></expression-component>
-                </otherwise>
-            </choice>
-            <set-variable variableName="skryv_golf" value="#[payload.?digitalisatiegolf]" doc:name="skryv_golf"/>
-            <set-variable variableName="skryv_xref_golf" value="#[flowVars.xref_golf[flowVars.skryv_golf]]" doc:name="skryv_xref_golf"/>
-            <choice doc:name="Choice - crm_golf_array_list.contains(skryv_xref_golf)">
-                <when expression="#[flowVars.skryv_golf == null || flowVars.?crm_golf_array_list.contains(flowVars.skryv_xref_golf)]">
-                    <expression-component doc:name="true - do nothing"><![CDATA[""]]></expression-component>
-                </when>
-                <otherwise>
-                    <expression-component doc:name="crm_golf_array_list add skryv_xref_drager"><![CDATA[flowVars.crm_golf_array_list.add(flowVars.skryv_xref_golf)]]></expression-component>
-                </otherwise>
-            </choice>
-        </foreach>
-        <choice doc:name="Check crm_dragers_array_list">
-            <when expression="#[flowVars.crm_dragers_array_list == empty]">
-                <set-payload value="#[&quot;&quot;]" doc:name="empty - Set Payload. to empty"/>
-            </when>
-            <otherwise>
-                <scripting:component doc:name="crm_dragers_string_comma_new to payload">
-                    <scripting:script engine="Groovy"><![CDATA[import java.util.*;
+		<flow-ref name="crm_company_document_get_dragers_golf"
+			doc:name="crm_company_document_get_dragers_golf" />
+		<flow-ref name="xref_analoge_drager" doc:name="xref_analoge_drager" />
+		<flow-ref name="xref_golf" doc:name="xref_golf" />
+		<foreach collection="flowVars.skryv_dragers" doc:name="For Each - skryv_dragers">
+			<set-variable variableName="skryv_drager"
+				value="#[payload.?type_drager.?Drager]" doc:name="skryv_drager" />
+			<set-variable variableName="skryv_xref_drager"
+				value="#[flowVars.xref_analoge_drager[flowVars.skryv_drager]]"
+				doc:name="skryv_xref_drager" />
+			<choice doc:name="Choice - crm_dragers_array_list.contains(skryv_xref_drager)">
+				<when
+					expression="#[flowVars.skryv_xref_drager == null || flowVars.?crm_dragers_array_list.contains(flowVars.skryv_xref_drager)]">
+					<expression-component doc:name="true - do nothing"><![CDATA[""]]></expression-component>
+				</when>
+				<otherwise>
+					<expression-component
+						doc:name="crm_dragers_array_list add skryv_xref_drager"><![CDATA[flowVars.crm_dragers_array_list.add(flowVars.skryv_xref_drager)]]></expression-component>
+				</otherwise>
+			</choice>
+			<set-variable variableName="skryv_golf"
+				value="#[payload.?digitalisatiegolf]" doc:name="skryv_golf" />
+			<set-variable variableName="skryv_xref_golf"
+				value="#[flowVars.xref_golf[flowVars.skryv_golf]]" doc:name="skryv_xref_golf" />
+			<choice doc:name="Choice - crm_golf_array_list.contains(skryv_xref_golf)">
+				<when
+					expression="#[flowVars.skryv_golf == null || flowVars.?crm_golf_array_list.contains(flowVars.skryv_xref_golf)]">
+					<expression-component doc:name="true - do nothing"><![CDATA[""]]></expression-component>
+				</when>
+				<otherwise>
+					<expression-component doc:name="crm_golf_array_list add skryv_xref_drager"><![CDATA[flowVars.crm_golf_array_list.add(flowVars.skryv_xref_golf)]]></expression-component>
+				</otherwise>
+			</choice>
+		</foreach>
+		<choice doc:name="Check crm_dragers_array_list">
+			<when expression="#[flowVars.crm_dragers_array_list == empty]">
+				<set-payload value="#[&quot;&quot;]" doc:name="empty - Set Payload. to empty" />
+			</when>
+			<otherwise>
+				<scripting:component doc:name="crm_dragers_string_comma_new to payload">
+					<scripting:script engine="Groovy"><![CDATA[import java.util.*;
 
   String crm_dragers_string_comma_new = new String();
   
@@ -158,17 +180,18 @@ flowVars.crm_golf_string_comma splitBy ","]]></dw:set-variable>
     };
     
 return crm_dragers_string_comma_new;]]></scripting:script>
-                </scripting:component>
-            </otherwise>
-        </choice>
-        <set-variable variableName="crm_dragers_string_comma_new" value="#[payload]" doc:name="crm_dragers_string_comma_new"/>
-        <choice doc:name="Check - crm_golf_array_list">
-            <when expression="#[flowVars.crm_golf_array_list == empty]">
-                <set-payload value="#[&quot;&quot;]" doc:name="empty - Set Payload to empty"/>
-            </when>
-            <otherwise>
-                <scripting:component doc:name="crm_golf_string_comma_new to payload">
-                    <scripting:script engine="Groovy"><![CDATA[import java.util.*;
+				</scripting:component>
+			</otherwise>
+		</choice>
+		<set-variable variableName="crm_dragers_string_comma_new"
+			value="#[payload]" doc:name="crm_dragers_string_comma_new" />
+		<choice doc:name="Check - crm_golf_array_list">
+			<when expression="#[flowVars.crm_golf_array_list == empty]">
+				<set-payload value="#[&quot;&quot;]" doc:name="empty - Set Payload to empty" />
+			</when>
+			<otherwise>
+				<scripting:component doc:name="crm_golf_string_comma_new to payload">
+					<scripting:script engine="Groovy"><![CDATA[import java.util.*;
 
   String crm_golf_string_comma_new = new String();
   
@@ -183,12 +206,13 @@ return crm_dragers_string_comma_new;]]></scripting:script>
     };
     
 return crm_golf_string_comma_new;]]></scripting:script>
-                </scripting:component>
-            </otherwise>
-        </choice>
-        <set-variable variableName="crm_golf_string_comma_new" value="#[payload]" doc:name="crm_golf_string_comma_new"/>
-        <dw:transform-message doc:name="set payload for http call">
-            <dw:set-payload><![CDATA[%dw 1.0
+				</scripting:component>
+			</otherwise>
+		</choice>
+		<set-variable variableName="crm_golf_string_comma_new"
+			value="#[payload]" doc:name="crm_golf_string_comma_new" />
+		<dw:transform-message doc:name="set payload for http call">
+			<dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 ---
 { api_group : p('teamleader.api_group'),
@@ -198,7 +222,7 @@ return crm_golf_string_comma_new;]]></scripting:script>
   ("custom_field_" ++ p('teamleader.company.analoge_dragers')) : flowVars.crm_dragers_string_comma_new,
   ("custom_field_" ++ p('teamleader.company.golf')) : flowVars.crm_golf_string_comma_new
 }]]></dw:set-payload>
-        </dw:transform-message>
+		</dw:transform-message>
 	</sub-flow>
 	<sub-flow name="crm_company_process_set_api_fields">
 		<choice doc:name="Choice">
@@ -377,9 +401,10 @@ return crm_golf_string_comma_new;]]></scripting:script>
 				<flow-ref name="crm_company_document_set_api_fields_drager_golf"
 					doc:name="Update Dragers en Golf" />
 			</when>
-            <when expression="#[flowVars.document_key == 'controle_intentieverklaring_v2']">
-                <flow-ref name="crm_company_document_set_api_fields_contact_gegevens" doc:name="Update Contact Gegevens"/>
-            </when>
+			<when expression="#[flowVars.document_key == 'controle_intentieverklaring_v2']">
+				<flow-ref name="crm_company_document_set_api_fields_contact_gegevens"
+					doc:name="Update Contact Gegevens" />
+			</when>
 			<otherwise>
 				<flow-ref name="crm_company_document_set_api_fields_comment"
 					doc:name="Update Comments" />
@@ -396,8 +421,79 @@ return crm_golf_string_comma_new;]]></scripting:script>
 		</until-successful>
 		<byte-array-to-string-transformer
 			doc:name="Byte Array to String" />
-		<set-variable variableName="state" value="CRM_COMPANY_UPDATED"
-			doc:name="Variable - state - CRM_COMPANY_UPDATED" />
+		<set-variable variableName="state" value="CRM_CONTACT_ADDED"
+			doc:name="Variable - state - CRM_CONTACT_ADDED" />
+		<flow-ref name="esearch_publish_log_message" doc:name="esearch_publish_log_message" />
+	</sub-flow>
+    <sub-flow name="crm_contact_actions">
+        <choice doc:name="Choice - crm_contact_actions">
+            <when expression="#[flowVars.crm_contact_actions == true]">
+                <flow-ref name="xref_functie_categorie" doc:name="true - xref_functie_categorie"/>
+                <flow-ref name="crm_contact_directie" doc:name="crm_contact_directie"/>
+            </when>
+            <otherwise>
+                <expression-component doc:name="Do Nothing"><![CDATA[""]]></expression-component>
+            </otherwise>
+        </choice>
+    </sub-flow>
+    <sub-flow name="crm_contact_directie">
+        <set-variable variableName="functie_categorie" value="#[xref_functie_categorie['directie']]" doc:name="Set functie_categorie"/>
+        <dw:transform-message doc:name="Set API Fields">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  forename : flowVars.adres_en_contactgegevens.gegevens_directie.voornaam,
+  surname : flowVars.adres_en_contactgegevens.gegevens_directie.naam_1,
+  email : flowVars.adres_en_contactgegevens.gegevens_directie.email,
+  ("custom_field_" ++ p('teamleader.contact.functiecategorie')) : flowVars.functie_categorie,
+  ("custom_field_" ++ p('teamleader.contact.relatie_met_viaa')) : p('teamleader.contact.relatie_met_viaa.contactpersoon_contract')
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <flow-ref name="crm_contact_add" doc:name="crm_contact_add"/>
+        <dw:transform-message doc:name="Set API Fields">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  contact_id : flowVars.contact_id,
+  company_id : flowVars.company_id,
+  mode : "link",
+  function : flowVars.adres_en_contactgegevens.gegevens_directie.functietitel
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <flow-ref name="crm_contact_link_to_company" doc:name="crm_contact_link_to_company"/>
+    </sub-flow>
+	<sub-flow name="crm_contact_add">
+		<set-variable variableName="http_post_body" value="#[payload]"
+			doc:name="Set - http_post_body" />
+		<until-successful maxRetries="5" synchronous="true"
+			doc:name="Until Successful">
+			<http:request config-ref="HTTP_Request_Configuration_Teamleader"
+				path="/addContact.php" method="POST" doc:name="HTTP - AddContact" />
+		</until-successful>
+		<byte-array-to-string-transformer
+			doc:name="Byte Array to String" />
+        <set-variable variableName="contact_id" value="#[payload]" doc:name="Set contact_id"/>
+		<set-variable variableName="state" value="CRM_CONTACT_ADDRD"
+			doc:name="Variable - state - CRM_CONTACT_ADDED" />
+		<flow-ref name="esearch_publish_log_message" doc:name="esearch_publish_log_message" />
+	</sub-flow>
+	<sub-flow name="crm_contact_link_to_company">
+		<set-variable variableName="http_post_body" value="#[payload]"
+			doc:name="Set - http_post_body" />
+		<until-successful maxRetries="5" synchronous="true"
+			doc:name="Until Successful">
+			<http:request config-ref="HTTP_Request_Configuration_Teamleader"
+				path="/linkContactToCompany.php" method="POST" doc:name="HTTP - LinkContactToCompany" />
+		</until-successful>
+		<byte-array-to-string-transformer
+			doc:name="Byte Array to String" />
+		<set-variable variableName="state" value="CRM_CONTACT_LINK_TO_COMPANY"
+			doc:name="Variable - state - CRM_CONTACT_LINK_TO_COMPANY" />
 		<flow-ref name="esearch_publish_log_message" doc:name="esearch_publish_log_message" />
 	</sub-flow>
 	<sub-flow name="crm_company_get">
@@ -406,9 +502,12 @@ return crm_golf_string_comma_new;]]></scripting:script>
 			<http:request config-ref="HTTP_Request_Configuration_Teamleader"
 				path="/getCompany.php" method="GET" doc:name="HTTP - GetComany Details">
 				<http:request-builder>
-                    <http:query-param paramName="api_group" value="${teamleader.api_group}"/>
-                    <http:query-param paramName="api_secret" value="${teamleader.api_secret}"/>
-                    <http:query-param paramName="company_id" value="#[flowVars.company_id]"/>
+					<http:query-param paramName="api_group"
+						value="${teamleader.api_group}" />
+					<http:query-param paramName="api_secret"
+						value="${teamleader.api_secret}" />
+					<http:query-param paramName="company_id"
+						value="#[flowVars.company_id]" />
 				</http:request-builder>
 			</http:request>
 		</until-successful>

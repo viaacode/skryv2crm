@@ -76,6 +76,7 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 			</when>
 			<otherwise>
 				<flow-ref name="crm_company_update" doc:name="crm_company_update" />
+                <flow-ref name="crm_contact_actions" doc:name="crm_contact_actions"/>
 			</otherwise>
 		</choice>
 	</flow>
