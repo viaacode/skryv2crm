@@ -257,6 +257,7 @@ return crm_golf_string_comma_new;]]></scripting:script>
   company_id : flowVars.company_id,
   ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.ja'),
   ("custom_field_" ++ p('teamleader.company.actief')) : p('teamleader.company.actief.nee'),
+  ("custom_field_" ++ p('teamleader.company.comment_intentieverklaring')) : "",
   ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "1",
   ("custom_field_" ++ p('teamleader.company.samenwerkingsovereenkomst')) : "1"
 }]]></dw:set-payload>
@@ -347,6 +348,7 @@ return crm_golf_string_comma_new;]]></scripting:script>
   company_id : flowVars.company_id,
   ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.ja'),
   ("custom_field_" ++ p('teamleader.company.intentieverklaring')) :  p('teamleader.company.intentieverklaring.ingevuld'),
+  ("custom_field_" ++ p('teamleader.company.comment_intentieverklaring')) : "",
   ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "1"
 }]]></dw:set-payload>
 				</dw:transform-message>
@@ -364,6 +366,7 @@ return crm_golf_string_comma_new;]]></scripting:script>
   company_id : flowVars.company_id,
   ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.ja'),
   ("custom_field_" ++ p('teamleader.company.intentieverklaring')) :  p('teamleader.company.intentieverklaring.ingevuld'),
+  ("custom_field_" ++ p('teamleader.company.comment_intentieverklaring')) : "",
   ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "0"
 }]]></dw:set-payload>
 				</dw:transform-message>
