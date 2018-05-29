@@ -209,6 +209,7 @@ payload.document.document.value.wij_hebben_kennis_genomen_van_de_samenwerkingsov
 			doc:name="Set comment_value" />
         <set-variable variableName="skryv_dragers" value="#[payload.?document.?document.?value.?dragers]" doc:name="Set Dragers"/>
         <set-variable variableName="adres_en_contactgegevens" value="#[payload.?document.?document.?value.adres_en_contactgegevens]" doc:name="Set adres_en_contactgegevens"/>
+        <set-variable variableName="bedrijfsvorm_optie" value="#[payload.?document.?document.?value.?bedrijfsvorm.?selectedOption]" doc:name="Set bedrijfsvorm_optie"/>
 		<flow-ref name="utils_set_esearch_variables" doc:name="utils_set_esearch_variables" />
 		<set-variable variableName="index" value="skryv2crm"
 			doc:name="Variable - index" />

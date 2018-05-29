@@ -20,6 +20,8 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
 		<set-variable variableName="type_organisatie"
 			value="#[xref_type_organisatie[flowVars.adres_en_contactgegevens.type_organisatie.selectedOption]]"
 			doc:name="Set type_organisatie" />
+        <flow-ref name="xref_bedrijfsvorm" doc:name="xref_bedrijfsvorm"/>
+        <set-variable variableName="bedrijfsvorm" value="#[xref_bedrijfsvorm[flowVars.?bedrijfsvorm_optie]]" doc:name="Set bedrijfsvorm"/>
 		<dw:transform-message doc:name="Set API Fields">
 			<dw:set-payload><![CDATA[%dw 1.0
 %output application/java
@@ -29,6 +31,7 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
   track_changes : "1",
   company_id : flowVars.company_id,
   ("custom_field_" ++ p('teamleader.company.type_organisatie')) : flowVars.type_organisatie,
+  business_type : "Onbekend" when (flowVars.bedrijfsvorm == null) otherwise flowVars.bedrijfsvorm,
   street : flowVars.adres_en_contactgegevens.postadres.straat,
   number : flowVars.adres_en_contactgegevens.postadres.huisnummer,
   zipcode : flowVars.adres_en_contactgegevens.postadres.postcode,

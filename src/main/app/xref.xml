@@ -58,4 +58,15 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 		<set-variable variableName="xref_functie_categorie" value="#[payload]"
 			doc:name="Set xref_functie_categorie" />
 	</sub-flow>
+		<sub-flow name="xref_bedrijfsvorm">
+		<ee:cache doc:name="Cache">
+			<parse-template location="${environment}_xref_bedrijfsvorm.json"
+				doc:name="Read - xref_bedrijfsvorm.json" />
+			<json:json-to-object-transformer
+				doc:name="JSON to Object" encoding="UTF-8" mimeType="application/json"
+				returnClass="java.util.LinkedHashMap" />
+		</ee:cache>
+		<set-variable variableName="xref_bedrijfsvorm" value="#[payload]"
+			doc:name="Set xref_bedrijfsvorm" />
+	</sub-flow>
 </mule>
