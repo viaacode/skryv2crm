@@ -436,6 +436,7 @@ return crm_golf_string_comma_new;]]></scripting:script>
             <when expression="#[flowVars.crm_contact_actions == true]">
                 <flow-ref name="xref_functie_categorie" doc:name="true - xref_functie_categorie"/>
                 <flow-ref name="crm_contact_directie" doc:name="crm_contact_directie"/>
+                <flow-ref name="crm_contact_administratief" doc:name="crm_contact_administratief"/>
             </when>
             <otherwise>
                 <expression-component doc:name="Do Nothing"><![CDATA[""]]></expression-component>
@@ -473,6 +474,45 @@ return crm_golf_string_comma_new;]]></scripting:script>
         </dw:transform-message>
         <flow-ref name="crm_contact_link_to_company" doc:name="crm_contact_link_to_company"/>
     </sub-flow>
+      <sub-flow name="crm_contact_administratief">
+        <choice doc:name="Choice - check if Ja">
+            <when expression="#[flowVars.adres_en_contactgegevens.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten_verschillend_van_de_directie.selectedOption == &quot;ja_5&quot;]">
+                <set-variable variableName="functie_categorie" value="#[xref_functie_categorie[flowVars.adres_en_contactgegevens.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten_verschillend_van_de_directie.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten.functiecategorie.selectedOption]]" doc:name="Set functie_categorie"/>
+                <dw:transform-message doc:name="Set API Fields">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  forename : flowVars.adres_en_contactgegevens.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten_verschillend_van_de_directie.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten.voornaam_1,
+  surname : flowVars.adres_en_contactgegevens.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten_verschillend_van_de_directie.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten.naam_2,
+  email : flowVars.adres_en_contactgegevens.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten_verschillend_van_de_directie.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten.email_1,
+  telephone : flowVars.adres_en_contactgegevens.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten_verschillend_van_de_directie.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten.telefoonnummer_1,
+  ("custom_field_" ++ p('teamleader.contact.functiecategorie')) : flowVars.functie_categorie,
+  ("custom_field_" ++ p('teamleader.contact.relatie_met_viaa')) : p('teamleader.contact.relatie_met_viaa.contactpersoon_contract')
+}]]></dw:set-payload>
+                </dw:transform-message>
+                <flow-ref name="crm_contact_add" doc:name="crm_contact_add"/>
+                <dw:transform-message doc:name="Set API Fields">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  contact_id : flowVars.contact_id,
+  company_id : flowVars.company_id,
+  mode : "link",
+  function : flowVars.adres_en_contactgegevens.gegevens_directie.functietitel
+}]]></dw:set-payload>
+                </dw:transform-message>
+                <flow-ref name="crm_contact_link_to_company" doc:name="crm_contact_link_to_company"/>
+            </when>
+            <otherwise>
+                <expression-component doc:name="No - Do Nothing"><![CDATA[""]]></expression-component>
+            </otherwise>
+        </choice>
+    </sub-flow>
 	<sub-flow name="crm_contact_add">
 		<set-variable variableName="http_post_body" value="#[payload]"
 			doc:name="Set - http_post_body" />
@@ -484,7 +524,7 @@ return crm_golf_string_comma_new;]]></scripting:script>
 		<byte-array-to-string-transformer
 			doc:name="Byte Array to String" />
         <set-variable variableName="contact_id" value="#[payload]" doc:name="Set contact_id"/>
-		<set-variable variableName="state" value="CRM_CONTACT_ADDRD"
+		<set-variable variableName="state" value="CRM_CONTACT_ADDED"
 			doc:name="Variable - state - CRM_CONTACT_ADDED" />
 		<flow-ref name="esearch_publish_log_message" doc:name="esearch_publish_log_message" />
 	</sub-flow>
