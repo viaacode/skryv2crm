@@ -248,25 +248,6 @@ return crm_golf_string_comma_new;]]></scripting:script>
 				</dw:transform-message>
 			</when>
 			<when
-				expression="#[flowVars.'x-skryv-event' == 'process' &amp;&amp; flowVars.action == 'ended' &amp;&amp; flowVars.process_key == 'so_ondertekenproces']">
-				<dw:transform-message
-					doc:name="7 - SEO -process - getekend opgeladen door VIAA">
-					<dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-{ api_group : p('teamleader.api_group'),
-  api_secret : p('teamleader.api_secret'),
-  track_changes : "1",
-  company_id : flowVars.company_id,
-  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.ja'),
-  ("custom_field_" ++ p('teamleader.company.actief')) : p('teamleader.company.actief.nee'),
-  ("custom_field_" ++ p('teamleader.company.comment_intentieverklaring')) : "",
-  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "1",
-  ("custom_field_" ++ p('teamleader.company.samenwerkingsovereenkomst')) : "1"
-}]]></dw:set-payload>
-				</dw:transform-message>
-			</when>
-			<when
 				expression="#[flowVars.'x-skryv-event' == 'process' &amp;&amp; flowVars.action == 'created' &amp;&amp; flowVars.process_key == 'service_agreement']">
 				<dw:transform-message doc:name="8 - SA - process - opstarten proces">
 					<dw:set-payload><![CDATA[%dw 1.0
@@ -411,6 +392,24 @@ return crm_golf_string_comma_new;]]></scripting:script>
 				<flow-ref name="crm_company_document_set_api_fields_contact_gegevens"
 					doc:name="Update Contact Gegevens" />
 			</when>
+            <when expression="#[flowVars.document_key == 'validatie_voorgestelde_samenwerkingsovereenkomst_documenten']">
+                <dw:transform-message doc:name="Update Samenwerkingsovereenkomst" metadata:id="ee5d297c-76e7-4c6b-8f2f-fa0904d281f3">
+                    <dw:input-payload/>
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  company_id : flowVars.company_id,
+  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.ja'),
+  ("custom_field_" ++ p('teamleader.company.actief')) : p('teamleader.company.actief.nee'),
+  ("custom_field_" ++ p('teamleader.company.comment_intentieverklaring')) : "",
+  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "1",
+  ("custom_field_" ++ p('teamleader.company.samenwerkingsovereenkomst')) : "1" when flowVars.akkoord == "ja" otherwise "0" 
+ }]]></dw:set-payload>
+                </dw:transform-message>
+            </when>
 			<otherwise>
 				<flow-ref name="crm_company_document_set_api_fields_comment"
 					doc:name="Update Comments" />
