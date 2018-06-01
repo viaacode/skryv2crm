@@ -30,7 +30,7 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 		<flow-ref name="skryv_receive_process_set_vars" doc:name="skryv_receive_process_set_vars" />
         <choice doc:name="Check if Content Partner">
             <when expression="#[flowVars.dossier.dossierDefinition != dw(&quot;p('skryv.dossierDefinition.process.ContentPartner')&quot;)]">
-                <set-variable variableName="skip_event" value="true" doc:name="Set sip_event to true because not a Content Partner"/>
+                <set-variable variableName="skip_event" value="true" doc:name="Set skip_event to true because not a Content Partner"/>
             </when>
             <otherwise>
                 <flow-ref name="ldap_company_get_id_by_or_number" doc:name="ldap_company_get_id_by_or_number"/>
@@ -72,8 +72,15 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 			path="/skryv/event/document" allowedMethods="POST"
 			doc:name="HTTP /skryv/event/document" />
 		<flow-ref name="skryv_receive_document_set_vars" doc:name="skryv_receive_document_set_vars" />
-        <flow-ref name="ldap_company_get_id_by_or_number" doc:name="ldap_company_get_id_by_or_number"/>
-        <flow-ref name="crm_company_document_set_api_fields" doc:name="crm_company_document_set_api_fields"/>
+        <choice doc:name="Check If Content Partner">
+            <when expression="#[flowVars.dossier.dossierDefinition != dw(&quot;p('skryv.dossierDefinition.process.ContentPartner')&quot;)]">
+                <set-variable variableName="skip_event" value="true" doc:name="Set skip_event to true because not a Content Partner"/>
+            </when>
+            <otherwise>
+                <flow-ref name="ldap_company_get_id_by_or_number" doc:name="ldap_company_get_id_by_or_number"/>
+                <flow-ref name="crm_company_document_set_api_fields" doc:name="crm_company_document_set_api_fields"/>
+            </otherwise>
+        </choice>
 		<choice doc:name="Skip Event?">
 			<when expression="#[flowVars.skip_event == true]">
 				<set-variable variableName="state" value="EVENT_SKIPPED"

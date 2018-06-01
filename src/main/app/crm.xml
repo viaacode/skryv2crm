@@ -15,6 +15,63 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/amqps http://www.mulesoft.org/schema/mule/amqps/current/mule-amqps.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
 http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+    <sub-flow name="crm_company_document_update_samenwerkingsovereenkomst_eind">
+        <choice doc:name="akkoord is empty?">
+            <when expression="#[flowVars.akkoord == empty]">
+                <set-variable variableName="skip_event" value="true" doc:name="true - skip_event"/>
+            </when>
+            <otherwise>
+                <dw:transform-message doc:name="7 - Update samenwerkingsovereenkomst - Eind Event for Ja">
+                    <dw:set-payload><![CDATA[%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  company_id : flowVars.company_id,
+  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.ja'),
+  ("custom_field_" ++ p('teamleader.company.actief')) : p('teamleader.company.actief.nee'),
+  ("custom_field_" ++ p('teamleader.company.comment_intentieverklaring')) : "",
+  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "1",
+  ("custom_field_" ++ p('teamleader.company.samenwerkingsovereenkomst')) : "1"
+}]]></dw:set-payload>
+                </dw:transform-message>
+            </otherwise>
+        </choice>
+    </sub-flow>
+    <sub-flow name="crm_company_document_update_samenwerkingsovereenkomst">
+        <choice doc:name="Check akkoord">
+            <when expression="#[flowVars.akkoord == 'ja']">
+                <dw:transform-message doc:name="Ja - 7a - Update Samenwerkingsovereenkomst">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  company_id : flowVars.company_id,
+  ("custom_field_" ++ p('teamleader.company.samenwerkingsovereenkomst')) : "1"
+}]]></dw:set-payload>
+                </dw:transform-message>
+            </when>
+            <when expression="#[flowVars.akkoord == 'neen']">
+                <dw:transform-message doc:name="Neen - 7b - Update Samenwerkingsovereenkomst" metadata:id="ee5d297c-76e7-4c6b-8f2f-fa0904d281f3">
+                    <dw:input-payload/>
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{ api_group : p('teamleader.api_group'),
+  api_secret : p('teamleader.api_secret'),
+  track_changes : "1",
+  company_id : flowVars.company_id,
+  ("custom_field_" ++ p('teamleader.company.samenwerkingsovereenkomst')) : "0"
+ }]]></dw:set-payload>
+                </dw:transform-message>
+            </when>
+            <otherwise>
+                <set-variable variableName="skip_event" value="true" doc:name="skip_event"/>
+            </otherwise>
+        </choice>
+    </sub-flow>
 	<sub-flow name="crm_company_document_set_api_fields_contact_gegevens">
 		<flow-ref name="xref_type_organisatie" doc:name="xref_type_organisatie" />
 		<set-variable variableName="type_organisatie"
@@ -393,22 +450,10 @@ return crm_golf_string_comma_new;]]></scripting:script>
 					doc:name="Update Contact Gegevens" />
 			</when>
             <when expression="#[flowVars.document_key == 'validatie_voorgestelde_samenwerkingsovereenkomst_documenten']">
-                <dw:transform-message doc:name="Update Samenwerkingsovereenkomst" metadata:id="ee5d297c-76e7-4c6b-8f2f-fa0904d281f3">
-                    <dw:input-payload/>
-                    <dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-{ api_group : p('teamleader.api_group'),
-  api_secret : p('teamleader.api_secret'),
-  track_changes : "1",
-  company_id : flowVars.company_id,
-  ("custom_field_" ++ p('teamleader.company.cp_status')) : p('teamleader.company.cp_status.ja'),
-  ("custom_field_" ++ p('teamleader.company.actief')) : p('teamleader.company.actief.nee'),
-  ("custom_field_" ++ p('teamleader.company.comment_intentieverklaring')) : "",
-  ("custom_field_" ++ p('teamleader.company.toestemming_starten')) : "1",
-  ("custom_field_" ++ p('teamleader.company.samenwerkingsovereenkomst')) : "1" when flowVars.akkoord == "ja" otherwise "0" 
- }]]></dw:set-payload>
-                </dw:transform-message>
+                <flow-ref name="crm_company_document_update_samenwerkingsovereenkomst" doc:name="7 - Update samenwerkingsovereenkomst - Ja/Nee switch"/>
+            </when>
+            <when expression="#[flowVars.document_key == 'getekende_samenwerkingsovereenkomst_documenten']">
+                <flow-ref name="crm_company_document_update_samenwerkingsovereenkomst_eind" doc:name="7 - Update samenwerkingsovereenkomst eind"/>
             </when>
 			<otherwise>
 				<flow-ref name="crm_company_document_set_api_fields_comment"
