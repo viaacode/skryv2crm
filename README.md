@@ -26,37 +26,19 @@ We use OAUTH authentication:
 
 Excel sheet : "Integratie Teamleader-Skryv Metadatamapping" beschrijft alle scenarios met de CRM field mapping.
 
-### Events
-
-Documenten	                    NR	Triggert statusupdate als	                    Milestone of Event	                        Type event
---------------------------      --  ----------------------------------------        ------------------------------------        ----------
-intentieverklaring (ITV)	    1	opgestuurd naar CP (proces ITV opgestart)	    Start event (start proces)	                proces
-	                            2	ingevuld door CP, en goedgekeurd door VIAA	    Milestone "Geen interesse"	                milestone
-	                            3	ingevuld door CP, en goedgekeurd door VIAA	    Milestone "Misschien later samenwerking"	milestone
-	                            4	ingevuld door CP, en goedgekeurd door VIAA	    Milestone "Akkoord en opstart"	            milestone
-	                            5	ingevuld door CP, en goedgekeurd door VIAA	    Milestone "Akkoord, geen opstart"	        milestone
-	                            6	ingevuld door CP, en goedgekeurd door VIAA	    Milestone "Interesse, niet akkoord met SWO"	milestone
-                                10  Mapping contact gegevens                       -                                           document
-Samenwerkingsovereenkomst (SWO)	7a	akkoord met SWO, getekend opgeladen door VIAA	Eind event (einde proces) --> indien 'ja'	proces
-	                            7b	niet akkoord met SWO	                        Document "Validatie SWO documenten"	        document
-Service agreement (SA)	        8	opstarten proces	                            Start event (start proces)	                proces
-	                            9	getekend opgeladen en goedgekeurd door VIAA     Eind event (einde proces)	                proces                             
+Link : https://docs.google.com/spreadsheets/d/1-orV084eUbagKI1eyIHj-Tdqneh5vJN45_ZNFvri4Ug/edit#gid=1102311688
 
 
-## Acties in CRM
-Skryv					                        CRM		    Action
------					                        -----		------
-intentieverklaring (ITV) 	        ---->		company		update
-Samenwerkingsovereenkomst (SWO)		---->		company		update
-Service agreement (SA)              ---->		company		update
-
-ITV mapping contact gegevens        ---->		company		update
-                                    ---->		contact		create
-                                    ---->		contact		link
+| Skryv          | CRM           | Action  |
+| -------------- |:-------------:| -------:|
+| ITV + SWO + SA | Company       | Update  |
+| ITV Contact    | Company       | Update  |
+|                | Contact       | Link    |
+|                | Contact       | Create  |
 
 ## Scenarios
 
-### 1	opgestuurd naar CP (proces ITV opgestart) - Start event (start proces)
+### 1 - Opgestuurd naar CP (proces ITV opgestart) - Start event (start proces)
 
 Method	POST 		http://localhost:10009/skryv/event/process
 
@@ -93,7 +75,7 @@ Body
 }
 ```
 
-### 2	ingevuld door CP, en goedgekeurd door VIAA - Milestone "Geen interesse"
+### 2 - Ingevuld door CP, en goedgekeurd door VIAA - Milestone "Geen interesse"
 
 Method	POST 		http://localhost:10009/skryv/event/milestone
 
@@ -129,7 +111,7 @@ Body
 }
 ```
 
-### 3	ingevuld door CP, en goedgekeurd door VIAA - Milestone "Misschien later samenwerking"
+### 3 - Ingevuld door CP, en goedgekeurd door VIAA - Milestone "Misschien later samenwerking"
 
 Method	POST 		http://localhost:10009/skryv/event/milestone
 
@@ -165,7 +147,7 @@ Body
 }
 ```
 
-### 4	ingevuld door CP, en goedgekeurd door VIAA - Milestone "Akkoord en opstart"
+### 4 - Ingevuld door CP, en goedgekeurd door VIAA - Milestone "Akkoord en opstart"
 
 Method	POST 		http://localhost:10009/skryv/event/milestone
 
@@ -201,7 +183,7 @@ Body
 }
 ```
 
-### 5	ingevuld door CP, en goedgekeurd door VIAA - Milestone "Akkoord, geen opstart"
+### 5 - Ingevuld door CP, en goedgekeurd door VIAA - Milestone "Akkoord, geen opstart"
 
 Method	POST 		http://localhost:10009/skryv/event/milestone
 
@@ -237,7 +219,7 @@ Body
 }
 ```
 
-### 6	ingevuld door CP, en goedgekeurd door VIAA - Milestone "Interesse, niet akkoord met SWO"
+### 6 - Ingevuld door CP, en goedgekeurd door VIAA - Milestone "Interesse, niet akkoord met SWO"
 
 Method	POST 		http://localhost:10009/skryv/event/milestone
 
@@ -273,7 +255,7 @@ Body
 }
 ```
 
-### 7a	ngevuld door CP, en goedgekeurd door VIAA - Milestone "Interesse, niet akkoord met SWO"
+### 7a - Ingevuld door CP, en goedgekeurd door VIAA - Milestone "Interesse, niet akkoord met SWO"
 
 Method	POST 		http://localhost:10009/skryv/event/process
 
@@ -310,7 +292,7 @@ Body
 }
 ```
 
-### 7b	niet akkoord met SWO - Document "Validatie SWO documenten"
+### 7b - Niet akkoord met SWO - Document "Validatie SWO documenten"
 
 Method	POST 		http://localhost:10009/skryv/event/process
 
@@ -346,7 +328,7 @@ Body
    }
 }
 ```
-### 8	opstarten process - Start event (start proces)
+### 8 - Opstarten process - Start event (start proces)
 
 Method	POST 		http://localhost:10009/skryv/event/document
 
@@ -382,7 +364,7 @@ Body
    }
 }
 ```
-### 9	getekend opgeladen en goedgekeurd door VIAA - Eind event (einde proces)	
+### 9 - Getekend opgeladen en goedgekeurd door VIAA - Eind event (einde proces)	
 
 Method	POST 		http://localhost:10009/skryv/event/document
 
