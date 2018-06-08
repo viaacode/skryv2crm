@@ -265,30 +265,130 @@ Header	Content-Type	application/json
 Body
 
 ```json
-{  
-   "action":"created",
-   "dossier":{  
-      "id":"db2f78a0-f709-44ca-b626-4d31ec8af8f1",
-      "label":"TEST 17042018",
-      "externalId":"OR-j960b2x",
-      "description":"",
-      "dossierDefinition":"90d24d34-b5b3-4942-8504-b6d76dd86ccb",
-      "createdAt":"2018-04-17T07:33:09.000+0000",
-      "updatedAt":"2018-04-17T07:33:09.000+0000",
-      "creator":"33aeb47c-d027-1036-8f5f-d369bf7ac4f1",
-      "active":true,
-      "communications":[  
-
-      ]
-   },
-   "process":{  
-      "id":"337717",
-      "businessKey":"db2f78a0-f709-44ca-b626-4d31ec8af8f1",
-      "processDefinitionId":"service_agreement:5:331616",
-      "processDefinitionKey":"service_agreement",
-      "startTime":"2018-04-17T08:33:18.000+0000",
-      "startActivityId":"StartEvent_SA"
-   }
+{
+  "action": "updated",
+  "dossier": {
+    "id": "9be045e1-da33-4337-825c-5a5b678d7815",
+    "label": "test erfgoedbibliotheek E",
+    "externalId": "OR-3t9d80q",
+    "description": "",
+    "dossierDefinition": "90d24d34-b5b3-4942-8504-b6d76dd86ccb",
+    "createdAt": "2018-06-06T12:12:27.000+0000",
+    "updatedAt": "2018-06-06T12:12:27.000+0000",
+    "creator": "33aeb47c-d027-1036-8f5f-d369bf7ac4f1",
+    "active": true,
+    "communications": []
+  },
+  "document": {
+    "id": "5d0f3056-94f0-43c7-b0be-f02aae36209b",
+    "version": 2,
+    "definition": "ac0d46f8-8738-44b2-b8f1-577a37a2d27b",
+    "definitionLabel": "Getekende Samenwerkingsovereenkomst Documenten",
+    "definitionKey": "getekende_samenwerkingsovereenkomst_documenten",
+    "readOnly": false,
+    "document": {
+      "value": {
+        "te_ondertekenen_documenten": {
+          "selectedOptions": {
+            "main": true,
+            "bijlage_1": true,
+            "bijlage_2": true,
+            "andere": false
+          },
+          "main": "http://public.skryv.com/viaa/VIAA-samenwerkingsovereenkomst-standaard-update201607.docx",
+          "type": {
+            "selectedOption": "standaard"
+          },
+          "bijlage_1": "http://public.skryv.com/viaa/BIJLAGE-1-SWO-standaard.docx",
+          "type_1": {
+            "selectedOption": "standaard"
+          },
+          "bijlage_2": "http://public.skryv.com/viaa/BIJLAGE-2-updatejuli2016-def.docx",
+          "type_2": {
+            "selectedOption": "standaard"
+          },
+          "addendum": [],
+          "versie": {
+            "Versies": "Niet van toepassing"
+          },
+          "versie_1": {
+            "Versies": "Niet van toepassing"
+          },
+          "versie_2": {
+            "Versies": "Niet van toepassing"
+          },
+          "getekende_versie": {
+            "id": "attachment_te_ondertekenen_documenten.getekende_versie",
+            "base": "a344eca2-9d62-4c2c-b1fd-8008521d375a",
+            "contentType": "image/png",
+            "size": 117319,
+            "name": "Schermafbeelding 2018-06-01 om 10.44.15.png"
+          },
+          "getekende_versie_1": {
+            "id": "attachment_te_ondertekenen_documenten.getekende_versie_1",
+            "base": "2034d29a-f96e-4c69-9200-bce89c40f38c",
+            "contentType": "image/png",
+            "size": 117319,
+            "name": "Schermafbeelding 2018-06-01 om 10.44.15.png"
+          },
+          "getekende_versie_2": {
+            "id": "attachment_te_ondertekenen_documenten.getekende_versie_2",
+            "base": "da0d6d62-a2fd-4369-ae18-2bcf6a76e232",
+            "contentType": "image/png",
+            "size": 117319,
+            "name": "Schermafbeelding 2018-06-01 om 10.44.15.png"
+          }
+        }
+      },
+      "lastSavedSnapshot": {
+        "te_ondertekenen_documenten": {
+          "selectedOptions": {
+            "main": true,
+            "bijlage_1": true,
+            "bijlage_2": true,
+            "andere": false
+          },
+          "main": "http://public.skryv.com/viaa/VIAA-samenwerkingsovereenkomst-standaard-update201607.docx",
+          "type": {
+            "selectedOption": "standaard"
+          },
+          "bijlage_1": "http://public.skryv.com/viaa/BIJLAGE-1-SWO-standaard.docx",
+          "type_1": {
+            "selectedOption": "standaard"
+          },
+          "bijlage_2": "http://public.skryv.com/viaa/BIJLAGE-2-updatejuli2016-def.docx",
+          "type_2": {
+            "selectedOption": "standaard"
+          },
+          "addendum": [],
+          "versie": {
+            "Versies": "Niet van toepassing"
+          },
+          "versie_1": {
+            "Versies": "Niet van toepassing"
+          },
+          "versie_2": {
+            "Versies": "Niet van toepassing"
+          }
+        }
+      },
+      "hasUnsavedChanges": true
+    },
+    "createdAt": "2018-06-06T13:21:37.000+0000",
+    "updatedAt": "2018-06-06T13:22:01.000+0000",
+    "links": [
+      {
+        "resourceType": "PROCESS",
+        "resourceId": "393948",
+        "linkType": "SCOPE"
+      },
+      {
+        "resourceType": "DOSSIER",
+        "resourceId": "9be045e1-da33-4337-825c-5a5b678d7815",
+        "linkType": "LINK"
+      }
+    ]
+  }
 }
 ```
 

@@ -29,7 +29,7 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 			doc:name="HTTP /skryv/event/process" />
 		<flow-ref name="skryv_receive_process_set_vars" doc:name="skryv_receive_process_set_vars" />
         <choice doc:name="Check if Content Partner">
-            <when expression="#[flowVars.dossier.dossierDefinition != dw(&quot;p('skryv.dossierDefinition.process.ContentPartner')&quot;)]">
+            <when expression="#[flowVars.dossier.dossierDefinition != dw(&quot;p('skryv.dossierDefinition.ContentPartner')&quot;)]">
                 <set-variable variableName="skip_event" value="true" doc:name="Set skip_event to true because not a Content Partner"/>
             </when>
             <otherwise>
@@ -73,7 +73,7 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 			doc:name="HTTP /skryv/event/document" />
 		<flow-ref name="skryv_receive_document_set_vars" doc:name="skryv_receive_document_set_vars" />
         <choice doc:name="Check If Content Partner">
-            <when expression="#[flowVars.dossier.dossierDefinition != dw(&quot;p('skryv.dossierDefinition.process.ContentPartner')&quot;)]">
+            <when expression="#[flowVars.dossier.dossierDefinition != dw(&quot;p('skryv.dossierDefinition.ContentPartner')&quot;)]">
                 <set-variable variableName="skip_event" value="true" doc:name="Set skip_event to true because not a Content Partner"/>
             </when>
             <otherwise>
@@ -220,9 +220,36 @@ payload.document.document.value.wij_hebben_kennis_genomen_van_de_samenwerkingsov
 		<set-variable variableName="comment_value"
 			value="#[flowVars.comment_value_2 or flowVars.comment_value_3 or flowVars.comment_value_6]"
 			doc:name="Set comment_value" />
-        <set-variable variableName="skryv_dragers" value="#[payload.?document.?document.?value.?dragers]" doc:name="Set Dragers"/>
-        <set-variable variableName="adres_en_contactgegevens" value="#[payload.?document.?document.?value.adres_en_contactgegevens]" doc:name="Set adres_en_contactgegevens"/>
-        <set-variable variableName="bedrijfsvorm_optie" value="#[payload.?document.?document.?value.?bedrijfsvorm.?selectedOption]" doc:name="Set bedrijfsvorm_optie"/>
+        <dw:transform-message doc:name="Set Dragers">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+            <dw:set-variable variableName="skryv_dragers"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.document.document.value.dragers]]></dw:set-variable>
+        </dw:transform-message>
+        <dw:transform-message doc:name="Set adres_en_contactgegevens">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+            <dw:set-variable variableName="adres_en_contactgegevens"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.document.document.value.adres_en_contactgegevens]]></dw:set-variable>
+        </dw:transform-message>
+        <dw:transform-message doc:name="Set bedrijfsvorm_optie">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+            <dw:set-variable variableName="bedrijfsvorm_optie"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.document.document.value.bedrijfsvorm.selectedOption]]></dw:set-variable>
+        </dw:transform-message>
         <dw:transform-message doc:name="Set akkoord">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
@@ -233,6 +260,35 @@ payload]]></dw:set-payload>
 ---
 payload.document.document.value.wij_verklaren_ons_akkoord_met_de_voorgestelde_samenwerkingsovereenkomst_documenten.selectedOption]]></dw:set-variable>
         </dw:transform-message>
+        <dw:transform-message doc:name="getekende_versie">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+            <dw:set-variable variableName="getekende_versie_"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.document.document.value.te_ondertekenen_documenten.getekende_versie.name]]></dw:set-variable>
+            <dw:set-variable variableName="getekende_versie_1"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.document.document.value.te_ondertekenen_documenten.getekende_versie_1.name]]></dw:set-variable>
+            <dw:set-variable variableName="getekende_versie_2"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.document.document.value.te_ondertekenen_documenten.getekende_versie_2.name]]></dw:set-variable>
+        </dw:transform-message>
+        <dw:transform-message doc:name="itv_in_orde">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+            <dw:set-variable variableName="itv_in_orde"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.document.document.value.is_de_opgeladen_intentieverklaring_in_orde.selectedOption == "ja_9"]]></dw:set-variable>
+        </dw:transform-message>
+        <set-variable variableName="getekende_versie" value="#[flowVars.getekende_versie_ or flowVars.getekende_versie_1 or flowVars.getekende_versie_2]" doc:name="set_getekende_versie"/>
 		<flow-ref name="utils_set_esearch_variables" doc:name="utils_set_esearch_variables" />
 		<set-variable variableName="index" value="skryv2crm"
 			doc:name="Variable - index" />

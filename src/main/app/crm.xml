@@ -15,14 +15,16 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/amqps http://www.mulesoft.org/schema/mule/amqps/current/mule-amqps.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
 http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+    <http:request-config name="HTTP_crm2ldap" host="localhost" port="10012" doc:name="HTTP Request Configuration"/>
     <sub-flow name="crm_company_document_update_samenwerkingsovereenkomst_eind">
-        <choice doc:name="akkoord is empty?">
-            <when expression="#[flowVars.akkoord == empty]">
-                <set-variable variableName="skip_event" value="true" doc:name="true - skip_event"/>
+        <choice doc:name="Check if getekende documenten">
+            <when expression="#[flowVars.getekende_versie == null]">
+                <set-variable variableName="skip_event" value="true" doc:name="skip_event"/>
             </when>
             <otherwise>
-                <dw:transform-message doc:name="7 - Update samenwerkingsovereenkomst - Eind Event for Ja">
-                    <dw:set-payload><![CDATA[%output application/java
+                <dw:transform-message doc:name="Ja - 7a - Update Samenwerkingsovereenkomst">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
 ---
 { api_group : p('teamleader.api_group'),
   api_secret : p('teamleader.api_secret'),
@@ -40,19 +42,6 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
     </sub-flow>
     <sub-flow name="crm_company_document_update_samenwerkingsovereenkomst">
         <choice doc:name="Check akkoord">
-            <when expression="#[flowVars.akkoord == 'ja']">
-                <dw:transform-message doc:name="Ja - 7a - Update Samenwerkingsovereenkomst">
-                    <dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-{ api_group : p('teamleader.api_group'),
-  api_secret : p('teamleader.api_secret'),
-  track_changes : "1",
-  company_id : flowVars.company_id,
-  ("custom_field_" ++ p('teamleader.company.samenwerkingsovereenkomst')) : "1"
-}]]></dw:set-payload>
-                </dw:transform-message>
-            </when>
             <when expression="#[flowVars.akkoord == 'neen']">
                 <dw:transform-message doc:name="Neen - 7b - Update Samenwerkingsovereenkomst" metadata:id="ee5d297c-76e7-4c6b-8f2f-fa0904d281f3">
                     <dw:input-payload/>
@@ -73,14 +62,14 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
         </choice>
     </sub-flow>
 	<sub-flow name="crm_company_document_set_api_fields_contact_gegevens">
-		<flow-ref name="xref_type_organisatie" doc:name="xref_type_organisatie" />
-		<set-variable variableName="type_organisatie"
-			value="#[xref_type_organisatie[flowVars.adres_en_contactgegevens.type_organisatie.selectedOption]]"
-			doc:name="Set type_organisatie" />
-        <flow-ref name="xref_bedrijfsvorm" doc:name="xref_bedrijfsvorm"/>
-        <set-variable variableName="bedrijfsvorm" value="#[xref_bedrijfsvorm[flowVars.?bedrijfsvorm_optie]]" doc:name="Set bedrijfsvorm"/>
-		<dw:transform-message doc:name="Set API Fields">
-			<dw:set-payload><![CDATA[%dw 1.0
+        <choice doc:name="ITV in orde?">
+            <when expression="#[flowVars.itv_in_orde == true]">
+                <flow-ref name="xref_type_organisatie" doc:name="xref_type_organisatie"/>
+                <set-variable variableName="type_organisatie" value="#[xref_type_organisatie[flowVars.adres_en_contactgegevens.type_organisatie.selectedOption]]" doc:name="Set type_organisatie"/>
+                <flow-ref name="xref_bedrijfsvorm" doc:name="xref_bedrijfsvorm"/>
+                <set-variable variableName="bedrijfsvorm" value="#[xref_bedrijfsvorm[flowVars.?bedrijfsvorm_optie]]" doc:name="Set bedrijfsvorm"/>
+                <dw:transform-message doc:name="Set API Fields">
+                    <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 ---
 { api_group : p('teamleader.api_group'),
@@ -99,8 +88,13 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
   ("custom_field_" ++ p('teamleader.company.facturatie_emailadres')) : flowVars.adres_en_contactgegevens.facturatie_emailadres,
   ("custom_field_" ++ p('teamleader.company.bestelbonnen')) : "1" when (flowVars.adres_en_contactgegevens.werkt_uw_organisatie_met_bestelbonnen_voor_de_facturatie.selectedOption == "ja") otherwise "0"
 }]]></dw:set-payload>
-		</dw:transform-message>
-        <set-variable variableName="crm_contact_actions" value="true" doc:name="Set crm_contact_actions"/>
+                </dw:transform-message>
+                <set-variable variableName="crm_contact_actions" value="true" doc:name="Set crm_contact_actions"/>
+            </when>
+            <otherwise>
+                <set-variable variableName="skip_event" value="true" doc:name="false - skip event"/>
+            </otherwise>
+        </choice>
 	</sub-flow>
 	<sub-flow name="crm_company_document_get_dragers_golf">
 		<flow-ref name="crm_company_get" doc:name="Get CRM Company" />
@@ -450,10 +444,10 @@ return crm_golf_string_comma_new;]]></scripting:script>
 					doc:name="Update Contact Gegevens" />
 			</when>
             <when expression="#[flowVars.document_key == 'validatie_voorgestelde_samenwerkingsovereenkomst_documenten']">
-                <flow-ref name="crm_company_document_update_samenwerkingsovereenkomst" doc:name="7 - Update samenwerkingsovereenkomst - Ja/Nee switch"/>
+                <flow-ref name="crm_company_document_update_samenwerkingsovereenkomst" doc:name="7b - Update samenwerkingsovereenkomst - Nee switch"/>
             </when>
             <when expression="#[flowVars.document_key == 'getekende_samenwerkingsovereenkomst_documenten']">
-                <flow-ref name="crm_company_document_update_samenwerkingsovereenkomst_eind" doc:name="7 - Update samenwerkingsovereenkomst eind"/>
+                <flow-ref name="crm_company_document_update_samenwerkingsovereenkomst_eind" doc:name="7a - Update samenwerkingsovereenkomst eind"/>
             </when>
 			<otherwise>
 				<flow-ref name="crm_company_document_set_api_fields_comment"
@@ -471,8 +465,8 @@ return crm_golf_string_comma_new;]]></scripting:script>
 		</until-successful>
 		<byte-array-to-string-transformer
 			doc:name="Byte Array to String" />
-		<set-variable variableName="state" value="CRM_CONTACT_ADDED"
-			doc:name="Variable - state - CRM_CONTACT_ADDED" />
+		<set-variable variableName="state" value="CRM_COMPANY_UPDATED"
+			doc:name="Variable - state - CRM_COMPANY_UPDATED" />
 		<flow-ref name="esearch_publish_log_message" doc:name="esearch_publish_log_message" />
 	</sub-flow>
     <sub-flow name="crm_contact_actions">
@@ -481,6 +475,7 @@ return crm_golf_string_comma_new;]]></scripting:script>
                 <flow-ref name="xref_functie_categorie" doc:name="true - xref_functie_categorie"/>
                 <flow-ref name="crm_contact_directie" doc:name="crm_contact_directie"/>
                 <flow-ref name="crm_contact_administratief" doc:name="crm_contact_administratief"/>
+                <flow-ref name="crm_contact_related" doc:name="crm_contact_related"/>
             </when>
             <otherwise>
                 <expression-component doc:name="Do Nothing"><![CDATA[""]]></expression-component>
@@ -570,6 +565,32 @@ return crm_golf_string_comma_new;]]></scripting:script>
         <set-variable variableName="contact_id" value="#[payload]" doc:name="Set contact_id"/>
 		<set-variable variableName="state" value="CRM_CONTACT_ADDED"
 			doc:name="Variable - state - CRM_CONTACT_ADDED" />
+		<flow-ref name="esearch_publish_log_message" doc:name="esearch_publish_log_message" />
+	</sub-flow>
+	<sub-flow name="crm_contact_related">
+        <dw:transform-message doc:name="set webhook json">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{ event_type : "related_contacts_updated",
+  object_type : "company",
+  object_id : flowVars.company_id
+}
+]]></dw:set-payload>
+        </dw:transform-message>
+		<until-successful maxRetries="5" synchronous="true"
+			doc:name="Until Successful">
+			<http:request config-ref="HTTP_crm2ldap"
+				path="/ldap/related_contacts/update" method="POST" doc:name="HTTP - localhost - /ldap/related_contacts/update (crm2ldap)" >
+                <http:request-builder>
+                    <http:header headerName="Content-Type" value="application/json"/>
+                </http:request-builder>
+            </http:request>
+		</until-successful>
+		<byte-array-to-string-transformer
+			doc:name="Byte Array to String" />
+		<set-variable variableName="state" value="CRM_TRIGGER_RELATED"
+			doc:name="Variable - state - CRM_TRIGGER_RELATED" />
 		<flow-ref name="esearch_publish_log_message" doc:name="esearch_publish_log_message" />
 	</sub-flow>
 	<sub-flow name="crm_contact_link_to_company">
