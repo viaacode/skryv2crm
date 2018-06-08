@@ -516,6 +516,7 @@ return crm_golf_string_comma_new;]]></scripting:script>
       <sub-flow name="crm_contact_administratief">
         <choice doc:name="Choice - check if Ja">
             <when expression="#[flowVars.adres_en_contactgegevens.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten_verschillend_van_de_directie.selectedOption == &quot;ja_5&quot;]">
+                <remove-variable variableName="functie_categorie" doc:name="Remove functie_categorie"/>
                 <set-variable variableName="functie_categorie" value="#[xref_functie_categorie[flowVars.adres_en_contactgegevens.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten_verschillend_van_de_directie.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten.functiecategorie.selectedOption]]" doc:name="Set functie_categorie"/>
                 <dw:transform-message doc:name="Set API Fields">
                     <dw:set-payload><![CDATA[%dw 1.0
