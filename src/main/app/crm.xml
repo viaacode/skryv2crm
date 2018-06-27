@@ -439,7 +439,7 @@ return crm_golf_string_comma_new;]]></scripting:script>
 				<flow-ref name="crm_company_document_set_api_fields_drager_golf"
 					doc:name="Update Dragers en Golf" />
 			</when>
-			<when expression="#[flowVars.document_key == 'controle_intentieverklaring_v2']">
+			<when expression="#[flowVars.document_key == 'controle_intentieverklaring']">
 				<flow-ref name="crm_company_document_set_api_fields_contact_gegevens"
 					doc:name="Update Contact Gegevens" />
 			</when>
