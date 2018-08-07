@@ -288,6 +288,16 @@ payload]]></dw:set-payload>
 ---
 payload.document.document.value.is_de_opgeladen_intentieverklaring_in_orde.selectedOption == "ja_9"]]></dw:set-variable>
         </dw:transform-message>
+        <dw:transform-message doc:name="company_name">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+            <dw:set-variable variableName="company_name"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.document.document.value.officile_naam_organisatie]]></dw:set-variable>
+        </dw:transform-message>
         <set-variable variableName="getekende_versie" value="#[flowVars.getekende_versie_ or flowVars.getekende_versie_1 or flowVars.getekende_versie_2]" doc:name="set_getekende_versie"/>
 		<flow-ref name="utils_set_esearch_variables" doc:name="utils_set_esearch_variables" />
 		<set-variable variableName="index" value="skryv2crm"

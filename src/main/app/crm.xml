@@ -76,6 +76,7 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
   api_secret : p('teamleader.api_secret'),
   track_changes : "1",
   company_id : flowVars.company_id,
+  name : flowVars.company_name,
   ("custom_field_" ++ p('teamleader.company.type_organisatie')) : flowVars.type_organisatie,
   business_type : "Onbekend" when (flowVars.bedrijfsvorm == null) otherwise flowVars.bedrijfsvorm,
   street : flowVars.adres_en_contactgegevens.postadres.straat,
@@ -85,6 +86,7 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
   email : flowVars.adres_en_contactgegevens.algemeen_emailadres,
   telephone : flowVars.adres_en_contactgegevens.algemeen_telefoonnummer,
   website : flowVars.adres_en_contactgegevens.website,
+  ("custom_field_" ++ p('teamleader.company.comment_intentieverklaring')) : flowVars.comment_value,
   ("custom_field_" ++ p('teamleader.company.facturatie_emailadres')) : flowVars.adres_en_contactgegevens.facturatie_emailadres,
   ("custom_field_" ++ p('teamleader.company.bestelbonnen')) : "1" when (flowVars.adres_en_contactgegevens.werkt_uw_organisatie_met_bestelbonnen_voor_de_facturatie.selectedOption == "ja") otherwise "0"
 }]]></dw:set-payload>
@@ -437,11 +439,11 @@ return crm_golf_string_comma_new;]]></scripting:script>
 		<choice doc:name="Check Key">
 			<when expression="#[flowVars.document_key == 'getekende_service_agreement']">
 				<flow-ref name="crm_company_document_set_api_fields_drager_golf"
-					doc:name="Update Dragers en Golf" />
+					doc:name="getekende_service_agreement - Update Dragers en Golf" />
 			</when>
 			<when expression="#[flowVars.document_key == 'controle_intentieverklaring']">
 				<flow-ref name="crm_company_document_set_api_fields_contact_gegevens"
-					doc:name="Update Contact Gegevens" />
+					doc:name="controle_intentieverklaring - Update Contact Gegevens" />
 			</when>
             <when expression="#[flowVars.document_key == 'validatie_voorgestelde_samenwerkingsovereenkomst_documenten']">
                 <flow-ref name="crm_company_document_update_samenwerkingsovereenkomst" doc:name="7b - Update samenwerkingsovereenkomst - Nee switch"/>
@@ -450,8 +452,7 @@ return crm_golf_string_comma_new;]]></scripting:script>
                 <flow-ref name="crm_company_document_update_samenwerkingsovereenkomst_eind" doc:name="7a - Update samenwerkingsovereenkomst eind"/>
             </when>
 			<otherwise>
-				<flow-ref name="crm_company_document_set_api_fields_comment"
-					doc:name="Update Comments" />
+                <set-variable variableName="skip_event" value="true" doc:name="Set skip_event=true"/>
 			</otherwise>
 		</choice>
 	</sub-flow>
