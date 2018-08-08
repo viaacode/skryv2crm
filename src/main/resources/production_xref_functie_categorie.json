@@ -1,12 +1,12 @@
 {
   "directie": "50829",
   "administratie": "57909",
-  "archief of collectiebeheer": "48270",
+  "archief_of_collectiebeheer": "48270",
   "beleid": "48272",
-  "IT en techniek": "70491",
+  "it__techniek": "70491",
   "management": "50833",
-  "marcom": "70489",
+  "marketing__communicatie": "70489",
   "mediaproductie": "51106",
-  "kennis/onderzoek": "50842",
-  "publiekswerking": "50839"
+  "onderzoek": "50842",
+  "publiekswerking_of_educatie": "50839"
 }

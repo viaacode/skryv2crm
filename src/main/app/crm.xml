@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+<mule xmlns:ajax="http://www.mulesoft.org/schema/mule/ajax" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
 	xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
 	xmlns:amqps="http://www.mulesoft.org/schema/mule/amqps" xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp"
@@ -14,7 +14,8 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/amqps http://www.mulesoft.org/schema/mule/amqps/current/mule-amqps.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
-http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/ajax http://www.mulesoft.org/schema/mule/ajax/current/mule-ajax.xsd">
     <http:request-config name="HTTP_crm2ldap" host="localhost" port="10012" doc:name="HTTP Request Configuration"/>
     <sub-flow name="crm_company_document_update_samenwerkingsovereenkomst_eind">
         <choice doc:name="Check if getekende documenten">
@@ -86,6 +87,7 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
   email : flowVars.adres_en_contactgegevens.algemeen_emailadres,
   telephone : flowVars.adres_en_contactgegevens.algemeen_telefoonnummer,
   website : flowVars.adres_en_contactgegevens.website,
+  vat_code : flowVars.btwnummer when (flowVars.btwnummer != null) otherwise "",
   ("custom_field_" ++ p('teamleader.company.comment_intentieverklaring')) : flowVars.comment_value,
   ("custom_field_" ++ p('teamleader.company.facturatie_emailadres')) : flowVars.adres_en_contactgegevens.facturatie_emailadres,
   ("custom_field_" ++ p('teamleader.company.bestelbonnen')) : "1" when (flowVars.adres_en_contactgegevens.werkt_uw_organisatie_met_bestelbonnen_voor_de_facturatie.selectedOption == "ja") otherwise "0"
@@ -514,6 +516,9 @@ return crm_golf_string_comma_new;]]></scripting:script>
         </dw:transform-message>
         <flow-ref name="crm_contact_link_to_company" doc:name="crm_contact_link_to_company"/>
     </sub-flow>
+<!--     <flow name="crmFlow"> -->
+<!--         <ajax:inbound-endpoint channel="" responseTimeout="10000" doc:name="Ajax"/> -->
+<!--     </flow> -->
       <sub-flow name="crm_contact_administratief">
         <choice doc:name="Choice - check if Ja">
             <when expression="#[flowVars.adres_en_contactgegevens.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten_verschillend_van_de_directie.selectedOption == &quot;ja_5&quot;]">
@@ -544,7 +549,7 @@ return crm_golf_string_comma_new;]]></scripting:script>
   contact_id : flowVars.contact_id,
   company_id : flowVars.company_id,
   mode : "link",
-  function : flowVars.adres_en_contactgegevens.gegevens_directie.functietitel
+  function : flowVars.adres_en_contactgegevens.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten_verschillend_van_de_directie.centrale_contactpersoon_van_de_organisatie_voor_het_afsluiten_van_de_contracten.functie
 }]]></dw:set-payload>
                 </dw:transform-message>
                 <flow-ref name="crm_contact_link_to_company" doc:name="crm_contact_link_to_company"/>
