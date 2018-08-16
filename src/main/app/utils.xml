@@ -9,7 +9,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 			value="#[java.util.UUID.randomUUID().toString()]" doc:name="Variable - event_id" />
 		<set-variable variableName="hostname" value="#[server.host]"
 			doc:name="Variable - hostname" />
-		<set-variable variableName="environment" value="${mule.env}"
+		<set-variable variableName="environment" value="${environment}"
 			doc:name="Variable - environment" />
 	</sub-flow>
 </mule>
