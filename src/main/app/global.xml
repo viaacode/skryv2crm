@@ -44,10 +44,10 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 	<http:request-config name="HTTP_Request_Configuration_Teamleader"
 		doc:name="HTTP Request Configuration" basePath="/api" host="${teamleader.host}"
 		port="443" protocol="HTTPS" proxy-ref="Proxy_Configuration" />
-	<http:request-config name="HTTP_Request_Configuration_Slack"
-		protocol="HTTPS" host="slack.com" port="443" basePath="/api"
-		doc:name="HTTP Request Configuration" proxy-ref="Proxy_Configuration">
-	</http:request-config>
+	<http:request-config name="HTTP_Request_Configuration_Slackception_App"
+        protocol="HTTPS" host="hooks.slack.com" port="443" basePath="/services"
+        doc:name="HTTP Request Configuration" proxy-ref="Proxy_Configuration">
+    </http:request-config>
 	<http:request-config name="HTTP_Request_Configuration_Skryv_OAUTH"
 		host="${skryv.oauth_host}" port="443" responseTimeout="5000"
 		doc:name="HTTP Request Configuration" protocol="HTTPS"

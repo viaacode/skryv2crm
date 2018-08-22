@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
+<mule xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
 	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
 	xmlns:cluster="http://www.mulesoft.org/schema/mule/ee/cluster"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -44,7 +44,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 			<async doc:name="Async">
 				<set-variable variableName="state" value="#['EXCEPTION']"
 					doc:name="Variable - state" />
-				<flow-ref name="esearch_publish_log_message" doc:name="log_elastic_search" />
+				<flow-ref name="esearch_publish_log_message" doc:name="esearch_publish_log_message" />
 			</async>
 			<set-variable variableName="kibana_link"
 				value="http://${elastic.host}:${elastic.port.kibana}/app/kibana#/discover?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-20h,mode:quick,to:now))&amp;_a=(columns:!(state,event_id),index:#[flowVars.index],interval:auto,query:(query_string:(analyze_wildcard:!t,query:event_id%3D#[flowVars.event_id])),sort:!(timestamp,desc))"
@@ -70,12 +70,10 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 			<async doc:name="Async">
 				<until-successful maxRetries="5" synchronous="true"
 					doc:name="Until Successful">
-					<http:request config-ref="HTTP_Request_Configuration_Slack"
-						path="/chat.postMessage" method="POST" doc:name="HTTP - /chat.postMessage">
+					<http:request config-ref="HTTP_Request_Configuration_Slackception_App"
+						path="${slack.channel_path}" method="POST" doc:name="HTTP - CRM_BOT">
 						<http:request-builder>
-							<http:header headerName="Content-Type" value="application/json" />
-							<http:header headerName="Authorization"
-								value="#[&quot;Bearer &quot; + '${slack.token}']" />
+                            <http:header headerName="Content-Type" value="application/json"/>
 						</http:request-builder>
 					</http:request>
 				</until-successful>
