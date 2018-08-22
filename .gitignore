@@ -1,5 +1,4 @@
-staging.properties
-production.properties
+*.properties
 catalog
 mappings
 src/main/app/mule-app.properties
@@ -27,7 +26,7 @@ tmp/**/*
 local.properties
 .settings/
 .loadpath
-# You may want to remove the sharp symbols here if you are using Maven
+# Recommended for Maven based projects 
 .project
 # External tool builders
 .externalToolBuilders/
@@ -44,5 +43,8 @@ local.properties
 .studio/
 flows/
 target/
+src/main/api/.repository/
+
+# Mule 3.4 support
 **/*.mflow
 keys/*
