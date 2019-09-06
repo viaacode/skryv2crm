@@ -38,5 +38,8 @@
   "D9 (Digital-S)": "430498",
   "MII": "430499",
   "Stenocassette": "430500",
-  "Grundig EN3": "430501"
+  "Grundig EN3": "430501",
+  "DV-formaten": "430502",
+  "dvd": "430506",
+  "cd": "430507"
 }
